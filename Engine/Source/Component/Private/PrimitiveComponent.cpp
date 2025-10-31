@@ -133,7 +133,7 @@ void UPrimitiveComponent::GetWorldAABB(FVector& OutMin, FVector& OutMax)
 
 			CachedWorldMin = AABB.Min;
 			CachedWorldMax = AABB.Max;
-       }
+		}
 
 		bIsAABBCacheDirty = false;
 	}

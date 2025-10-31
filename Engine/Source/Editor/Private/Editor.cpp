@@ -217,6 +217,52 @@ void UEditor::RenderEditorGeometry()
 {
 	// 3D 지오메트리 렌더링 (Grid 등, FXAA 전 SceneColor에 렌더링)
 	BatchLines.Render();
+	RenderCollision();
+}
+
+void UEditor::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+{
+	Gizmo.RenderGizmo(InCamera, InViewport);
+
+	// 모든 DirectionalLight의 빛 방향 기즈모 렌더링 (선택 여부 무관)
+	UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
+	if (EditorWorld && EditorWorld->GetLevel())
+	{
+		ULevel* CurrentLevel = EditorWorld->GetLevel();
+		const TArray<ULightComponent*>& LightComponents = CurrentLevel->GetLightComponents();
+		for (ULightComponent* LightComp : LightComponents)
+		{
+			// Pilot Mode: 현재 조종 중인 Actor의 컴포넌트는 화살표 렌더링 스킵
+			if (bIsPilotMode && PilotedActor && LightComp->GetOwner() == PilotedActor)
+			{
+				continue;
+			}
+
+			if (UDirectionalLightComponent* DirLight = Cast<UDirectionalLightComponent>(LightComp))
+			{
+				DirLight->RenderLightDirectionGizmo(InCamera, InViewport);
+			}
+			if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(LightComp))
+			{
+				SpotLight->RenderLightDirectionGizmo(InCamera, InViewport);
+			}
+		}
+	}
+}
+
+void UEditor::RenderGizmoForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+{
+	if (Gizmo.HasComponent())
+	{
+		Gizmo.RenderForHitProxy(InCamera, InViewport);
+	}
+}
+
+// TODO(SDM): 충돌 라인 렌더링 최적화 필요함.
+// 현재는 모든 충돌 컴포넌트를 매 프레임 순회하며 렌더링
+// 향후 라인	버퍼에 미리 추가해두고, 변경 사항이 있을 때만 갱신하는 방식으로 개선 필요(아마도?)
+void UEditor::RenderCollision()
+{
 	// 충돌 라인 컬러 규칙 (UE 스타일)
 	const FColor SelectedComponentColor(255, 200, 0, 255);   // 노란색
 	const FColor SiblingOfSelectedColor(255, 235, 130, 200);   // 흐릿한 노란색(컴포넌트 선택 시 같은 액터의 다른 충돌 컴포넌트)
@@ -231,12 +277,12 @@ void UEditor::RenderEditorGeometry()
 	AActor* SelectedActor = GEditor->GetEditorModule()->GetSelectedActor();
 
 	// 모든 액터 순회
-	const TArray<AActor*>& Actors = CurrentLevel->GetLevelActors();
-	for (AActor* Actor : Actors)
+	const TArray<UShapeComponent*>& Shapes = CurrentLevel->GetShapeComponents();
+	for (UShapeComponent* Shape : Shapes)
 	{
+		if (!Shape) { continue; }
+		AActor* Actor = Shape->GetOwner();
 		if (!Actor) { continue; }
-
-
 		// 모드/컨텍스트 결정
 		const bool bActorSelectedStrict = (bIsActorSelected && SelectedActor && Actor == SelectedActor);
 
@@ -312,44 +358,6 @@ void UEditor::RenderEditorGeometry()
 				BatchLines.RenderSingleBounding(BV, WireColor);
 			}
 		}
-	}
-}
-
-void UEditor::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
-{
-	Gizmo.RenderGizmo(InCamera, InViewport);
-
-	// 모든 DirectionalLight의 빛 방향 기즈모 렌더링 (선택 여부 무관)
-	UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
-	if (EditorWorld && EditorWorld->GetLevel())
-	{
-		ULevel* CurrentLevel = EditorWorld->GetLevel();
-		const TArray<ULightComponent*>& LightComponents = CurrentLevel->GetLightComponents();
-		for (ULightComponent* LightComp : LightComponents)
-		{
-			// Pilot Mode: 현재 조종 중인 Actor의 컴포넌트는 화살표 렌더링 스킵
-			if (bIsPilotMode && PilotedActor && LightComp->GetOwner() == PilotedActor)
-			{
-				continue;
-			}
-
-			if (UDirectionalLightComponent* DirLight = Cast<UDirectionalLightComponent>(LightComp))
-			{
-				DirLight->RenderLightDirectionGizmo(InCamera, InViewport);
-			}
-			if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(LightComp))
-			{
-				SpotLight->RenderLightDirectionGizmo(InCamera, InViewport);
-			}
-		}
-	}
-}
-
-void UEditor::RenderGizmoForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
-{
-	if (Gizmo.HasComponent())
-	{
-		Gizmo.RenderForHitProxy(InCamera, InViewport);
 	}
 }
 

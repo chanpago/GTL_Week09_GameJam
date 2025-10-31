@@ -6,6 +6,7 @@
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Component/Public/AmbientLightComponent.h"
 #include "Component/Public/SpotLightComponent.h"
+#include "Component/Collision/Public/ShapeComponent.h"
 #include "Core/Public/Object.h"
 #include "Editor/Public/Editor.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
@@ -146,6 +147,10 @@ void ULevel::RegisterComponent(UActorComponent* InComponent)
 			// 실패하면 DynamicPrimitiveQueue 목록에 추가
 			OnPrimitiveUpdated(PrimitiveComponent);
 		}
+		if (auto Shape = Cast<UShapeComponent>(PrimitiveComponent))
+		{
+			ShapeComponents.push_back(Shape);
+		}
 	}
 	else if (auto LightComponent = Cast<ULightComponent>(InComponent))
 	{
@@ -168,8 +173,6 @@ void ULevel::RegisterComponent(UActorComponent* InComponent)
 		{
 			LightComponents.push_back(AmbientLightComponent);
 		}
-		
-		
 	}
 	UE_LOG("Level: '%s' 컴포넌트를 씬에 등록했습니다.", InComponent->GetName().ToString().data());
 }
@@ -199,9 +202,7 @@ void ULevel::UnregisterComponent(UActorComponent* InComponent)
 		{
 			LightComponents.erase(It);
 		}
-		
 	}
-	
 }
 
 void ULevel::AddActorToLevel(AActor* InActor)
