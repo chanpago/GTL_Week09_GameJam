@@ -182,6 +182,9 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, UCa
 		DisplayAngleRadians = std::round(GetCurrentRotationAngle() / SnapAngleRadians) * SnapAngleRadians;
 	}
 
+	// RotateVector 부호 보정
+	DisplayAngleRadians = -DisplayAngleRadians;
+
 	// 각 축마다 다른 BaseAxis 사용
 	FVector BaseAxis0, BaseAxis1;
 	switch (GizmoDirection)

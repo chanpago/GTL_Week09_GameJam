@@ -667,32 +667,9 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, UCamera* InCamera)
 {
 	URenderer& Renderer = URenderer::GetInstance();
-	const bool bIsOrtho = (InCamera->GetCameraType() == ECameraType::ECT_Orthographic);
-	const bool bSkipFlip = bIsOrtho;  // ortho 뷰에서는 플립 스킵 (각도 오버레이와 동일 평면)
 
-	FVector RenderWorldAxis0, RenderWorldAxis1;
-
-	if (bSkipFlip)
-	{
-		// Ortho (World + Local): 정확한 로컬 평면 (플립 없음, Arc/각도 오버레이와 동일)
-		RenderWorldAxis0 = BaseRot.RotateVector(BaseAxis0);
-		RenderWorldAxis1 = BaseRot.RotateVector(BaseAxis1);
-	}
-	else
-	{
-		// Perspective: 플립 판정 적용 (카메라에서 잘 보이도록)
-		const FVector GizmoLoc = P.Location;
-		const FVector CameraLoc = InCamera->GetLocation();
-		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
-
-		FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0);
-		FVector WorldAxis1 = BaseRot.RotateVector(BaseAxis1);
-
-		const bool bMirrorAxis0 = (WorldAxis0.Dot(DirectionToWidget) <= 0.0f);
-		const bool bMirrorAxis1 = (WorldAxis1.Dot(DirectionToWidget) <= 0.0f);
-		RenderWorldAxis0 = bMirrorAxis0 ? WorldAxis0 : -WorldAxis0;
-		RenderWorldAxis1 = bMirrorAxis1 ? WorldAxis1 : -WorldAxis1;
-	}
+	FVector RenderWorldAxis0 = BaseRot.RotateVector(BaseAxis0);
+	FVector RenderWorldAxis1 = BaseRot.RotateVector(BaseAxis1);
 
 	// Inner circle: 두꺼운 축 색상 선
 	TArray<FNormalVertex> innerVertices, outerVertices;
@@ -783,10 +760,12 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 		DisplayAngle = GetSnappedRotationAngle(SnapAngle);
 	}
 
-	// Z축은 각도 반전 (언리얼 표준) - 월드 공간 BaseAxis로 판정
-	const bool bIsZAxis = (BaseAxis0.X > 0.9f && BaseAxis0.Y < 0.1f && BaseAxis0.Z < 0.1f &&
+	// RotateVector 각도 보정
+	const bool bIsXAxis = (BaseAxis0.X < 0.1f && BaseAxis0.Y < 0.1f && BaseAxis0.Z > 0.9f &&
 	                       BaseAxis1.X < 0.1f && BaseAxis1.Y > 0.9f && BaseAxis1.Z < 0.1f);
-	if (bIsZAxis)
+	const bool bIsYAxis = (BaseAxis0.X > 0.9f && BaseAxis0.Y < 0.1f && BaseAxis0.Z < 0.1f &&
+	                       BaseAxis1.X < 0.1f && BaseAxis1.Y < 0.1f && BaseAxis1.Z > 0.9f);
+	if (bIsXAxis || bIsYAxis)
 	{
 		DisplayAngle = -DisplayAngle;
 	}

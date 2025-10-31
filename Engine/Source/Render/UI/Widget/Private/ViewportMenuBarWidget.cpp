@@ -363,8 +363,8 @@ void UViewportMenuBarWidget::RenderWidget()
 void UViewportMenuBarWidget::RenderCameraControls(UCamera& InCamera)
 {
 	// --- UI를 그리기 직전에 항상 카메라로부터 최신 값을 가져옵니다 ---
-	auto& Location = InCamera.GetLocation();
-	auto& Rotation = InCamera.GetRotation();
+	FVector Location = InCamera.GetLocation();
+	FVector Rotation = InCamera.GetRotation();
 	float FovY = InCamera.GetFovY();
 	float NearZ = InCamera.GetNearZ();
 	float FarZ = InCamera.GetFarZ();
@@ -383,8 +383,9 @@ void UViewportMenuBarWidget::RenderCameraControls(UCamera& InCamera)
 		InCamera.SetMoveSpeed(MoveSpeed); // 변경 시 즉시 적용
 	}
 
-	ImGui::DragFloat3("Location", &Location.X, 0.05f);
-	ImGui::DragFloat3("Rotation", &Rotation.X, 0.1f);
+	bool bTransformChanged = false;
+	bTransformChanged |= ImGui::DragFloat3("Location", &Location.X, 0.05f);
+	bTransformChanged |= ImGui::DragFloat3("Rotation", &Rotation.X, 0.1f);
 
 	bool bOpticsChanged = false;
 	if (ModeIndex == 0) // 원근 투영 
@@ -399,6 +400,12 @@ void UViewportMenuBarWidget::RenderCameraControls(UCamera& InCamera)
 	}
 
 	// 변경된 값을 카메라에 다시 적용
+	if (bTransformChanged)
+	{
+		InCamera.SetLocation(Location);
+		InCamera.SetRotation(Rotation);
+	}
+
 	if (bOpticsChanged)
 	{
 		InCamera.SetFovY(FovY);

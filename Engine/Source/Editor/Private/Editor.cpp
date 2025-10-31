@@ -1700,10 +1700,9 @@ void UEditor::TogglePilotMode()
 	{
 		FVector ActorLocation = RootComp->GetWorldLocation();
 		FQuaternion ActorRotationQuat = RootComp->GetWorldRotationAsQuaternion();
-		FVector ActorRotationEuler = ActorRotationQuat.ToEuler();
 
 		Cam->SetLocation(ActorLocation);
-		Cam->SetRotation(ActorRotationEuler);
+		Cam->SetRotationQuat(ActorRotationQuat);
 
 		// 기즈모를 원래 Actor 위치에 고정
 		PilotModeFixedGizmoLocation = ActorLocation;
@@ -1745,12 +1744,9 @@ void UEditor::UpdatePilotMode()
 			if (RootComp)
 			{
 				FVector CameraLocation = Cam->GetLocation();
-				FVector CameraRotationEuler = Cam->GetRotation();
+				FQuaternion CameraRotationQuat = Cam->GetRotationQuat();
 
-				// Camera와 동일한 방식으로 Rotation Matrix 생성 후 Quaternion으로 변환
-				FMatrix CameraRotationMatrix = FMatrix::RotationMatrix(FVector::GetDegreeToRadian(CameraRotationEuler));
-				FQuaternion CameraRotationQuat = FQuaternion::FromRotationMatrix(CameraRotationMatrix);
-
+				// Actor에 카메라 Transform 직접 적용 (Camera가 내부적으로 Quaternion 사용)
 				RootComp->SetWorldLocation(CameraLocation);
 				RootComp->SetWorldRotation(CameraRotationQuat);
 			}

@@ -38,7 +38,8 @@ public:
 	 * @brief Setter
 	 */
 	void SetLocation(const FVector& InOtherPosition) { RelativeLocation = InOtherPosition; }
-	void SetRotation(const FVector& InOtherRotation) { RelativeRotation = InOtherRotation; }
+	void SetRotation(const FVector& InOtherRotation);
+	void SetRotationQuat(const FQuaternion& InQuat) { RelativeRotationQuat = InQuat; }
 	void SetFovY(const float InOtherFovY) { FovY = InOtherFovY; }
 	void SetAspect(const float InOtherAspect) { Aspect = InOtherAspect; }
 	void SetNearZ(const float InOtherNearZ) { NearZ = InOtherNearZ; }
@@ -60,8 +61,9 @@ public:
 
 	FVector CalculatePlaneNormal(const FVector4& Axis);
 	FVector CalculatePlaneNormal(const FVector& Axis);
-	FVector& GetLocation() { return RelativeLocation; }
-	FVector& GetRotation() { return RelativeRotation; }
+	const FVector& GetLocation() const { return RelativeLocation; }
+	FVector GetRotation() const { return RelativeRotationQuat.ToEuler(); }
+	const FQuaternion& GetRotationQuat() const { return RelativeRotationQuat; }
 	const FVector& GetForward() const { return Forward; }
 	const FVector& GetUp() const { return Up; }
 	const FVector& GetRight() const { return Right; }
@@ -103,7 +105,7 @@ public:
 private:
 	FCameraConstants CameraConstants = {};
 	FVector RelativeLocation = {};
-	FVector RelativeRotation = {};
+	FQuaternion RelativeRotationQuat = FQuaternion::Identity(); // 실제 회전 저장소
 	FVector Forward = { 1,0,0 };
 	FVector Up = {0,0,1};
 	FVector Right = {0,1,0};
