@@ -6,9 +6,11 @@
 #include "Component/Public/LightComponent.h"
 #include "Component/Public/SceneComponent.h"
 #include "Component/Public/UUIDTextComponent.h"
+#include "Component/Public/ULuaScriptComponent.h"
 #include "Editor/Public/Editor.h"
 #include "Level/Public/Level.h"
 #include "Manager/Asset/Public/AssetManager.h"
+#include "Manager/Lua/Public/LuaScriptManager.h"
 #include "Utility/Public/JsonSerializer.h"
 
 IMPLEMENT_CLASS(AActor, UObject)
@@ -143,6 +145,10 @@ void AActor::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 			FString bTickInEditorString;
 			FJsonSerializer::ReadString(InOutHandle, "bTickInEditor", bTickInEditorString, "false");
 			bTickInEditor = bTickInEditorString == "true" ? true : false;
+
+			FString bUseScriptString;
+			FJsonSerializer::ReadString(InOutHandle, "bUseScript", bUseScriptString, "false");
+			bUseScript = bUseScriptString == "true" ? true : false;
         }
     }
     // 저장 (Save)
@@ -154,6 +160,7 @@ void AActor::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 
 		InOutHandle["bCanEverTick"] = bCanEverTick ? "true" : "false";
 		InOutHandle["bTickInEditor"] = bTickInEditor ? "true" : "false";
+		InOutHandle["bUseScript"] = bUseScript ? "true" : "false";
 
         JSON ComponentsJson = json::Array(); 
 
@@ -504,6 +511,16 @@ void AActor::BeginPlay()
 {
 	if (bBegunPlay) return;
 	bBegunPlay = true;
+	
+	// Initialize Lua script component if using script
+	if (bUseScript)
+	{
+		std::cout << "[DEBUG] Actor BeginPlay: bUseScript is true, initializing Lua" << std::endl;
+		InitLuaScriptComponent();
+		bool bBindSuccess = BindSelfLuaProperties();
+		std::cout << "[DEBUG] Actor BeginPlay: BindSelfLuaProperties result = " << bBindSuccess << std::endl;
+	}
+	
 	for (auto& Component : OwnedComponents)
 	{
 		if (Component)
@@ -526,6 +543,54 @@ void AActor::EndPlay()
 	}
 }
 
+void AActor::InitLuaScriptComponent()
+{
+	if (LuaScriptComponent == nullptr)
+	{
+		LuaScriptComponent = AddComponent<ULuaScriptComponent>();
+	}
+}
+
+bool AActor::BindSelfLuaProperties()
+{
+	std::cout << "[DEBUG] BindSelfLuaProperties: bUseScript=" << bUseScript << ", LuaScriptComponent=" << (LuaScriptComponent ? "valid" : "null") << std::endl;
+	
+	if (!bUseScript || !LuaScriptComponent)
+	{
+		std::cout << "[DEBUG] BindSelfLuaProperties: Early return (no script or component)" << std::endl;
+		return false;
+	}
+	
+	// Load Lua script
+	std::cout << "[DEBUG] BindSelfLuaProperties: Calling LoadScript()" << std::endl;
+	bool bLoadSuccess = LuaScriptComponent->LoadScript();
+	std::cout << "[DEBUG] BindSelfLuaProperties: LoadScript result = " << bLoadSuccess << std::endl;
+	
+	if (!bLoadSuccess)
+	{
+		return false;
+	}
+	
+	sol::table& LuaTable = LuaScriptComponent->GetLuaSelfTable();
+	std::cout << "[DEBUG] BindSelfLuaProperties: LuaTable valid = " << LuaTable.valid() << std::endl;
+	
+	if (!LuaTable.valid())
+	{
+		return false;
+	}
+	
+	// Bind this actor to Lua table
+	LuaTable["this"] = this;
+	LuaTable["Name"] = GetName().ToString();
+	
+	std::cout << "[DEBUG] BindSelfLuaProperties: Success!" << std::endl;
+	return true;
+}
+
+FString AActor::GetLuaScriptPathName()
+{
+	return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : FString("");
+}
 /* =========================
  *	Collision Section
    ========================= */

@@ -16,12 +16,17 @@ USceneComponent::USceneComponent()
 
 void USceneComponent::BeginPlay()
 {
-
+    Super::BeginPlay();
 }
 
 void USceneComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+}
+
+void USceneComponent::EndPlay()
+{
+    Super::EndPlay();
 }
 void USceneComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
