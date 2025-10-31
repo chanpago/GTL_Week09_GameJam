@@ -362,9 +362,12 @@
     <ClInclude Include="Source\Core\Public\WindowsBinWriter.h" />
     <ClInclude Include="Source\Editor\Public\EditorEngine.h" />
     <ClInclude Include="Source\Global\BVH.h" />
+    <ClInclude Include="Source\Global\Delegate.h" />
+    <ClInclude Include="Source\Global\DelegateMacros.h" />
     <ClInclude Include="Source\Global\Octree.h" />
     <ClInclude Include="Source\Global\Quaternion.h" />
     <ClInclude Include="Source\Global\Rotator.h" />
+    <ClInclude Include="Source\Global\WeakObjectPtr.h" />
     <ClInclude Include="Source\Level\Public\World.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h">
       <DeploymentContent>false</DeploymentContent>
@@ -659,8 +662,10 @@
     <ClCompile Include="Source\Editor\Private\GizmoMath.cpp" />
     <ClCompile Include="Source\Editor\Private\GizmoRenderer.cpp" />
     <ClCompile Include="Source\Global\BVH.cpp" />
+    <ClCompile Include="Source\Global\Delegate.cpp" />
     <ClCompile Include="Source\Global\Octree.cpp" />
     <ClCompile Include="Source\Global\Quaternion.cpp" />
+    <ClCompile Include="Source\Global\WeakObjectPtr.cpp" />
     <ClCompile Include="Source\Level\Private\World.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp">
