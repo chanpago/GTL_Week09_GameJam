@@ -2,7 +2,11 @@
 #include "Color.h"
 #include "Core/Public/Archive.h"
 
-// 내부 헬퍼
+/*  ========================
+    내부 헬퍼
+    ========================*/
+
+// 16진수 문자 하나를 0 ~ 15 숫자로 변환 (Nibble은 4비트짜리 값(0~15)을 의미)
 static uint8 HexCharToNibble(char C)
 {
     if (C >= '0' && C <= '9') { return static_cast<uint8>(C - '0'); }
@@ -11,10 +15,18 @@ static uint8 HexCharToNibble(char C)
     return 0;
 }
 
+/* 
+    16진수 문자 두 개를 합쳐서 1바이트(0~255)로 변환하는 함수
+	- 예: "AF" -> 0xAF (175), "FF" -> 0xFF (255)
+*/
 static uint8 HexPairToByte(char Hi, char Lo)
 {
+	// 실제로는 Hi * 16 + Lo 와 동일 (Hi를 4비트 밀면 16을 곱한것과 같음)
     return static_cast<uint8>((HexCharToNibble(Hi) << 4) | HexCharToNibble(Lo));
 }
+/*  ========================
+    헬퍼 끝
+    ========================*/
 
 bool FColor::operator==(const FColor& Other) const
 {
@@ -33,21 +45,24 @@ void FColor::Set(uint8 InR, uint8 InG, uint8 InB, uint8 InA)
     B = InB;
     A = InA;
 }
-
-std::uint32_t FColor::ToPackedRGBA() const
+/* 
+    R / G / B / A 네 개의 1바이트 값을 32비트 정수로 합치는 함수
+    - 메모리나 GPU에 넘길 때 한 덩어리로 넘기기 좋게 만듬
+*/
+uint32 FColor::ToPackedRGBA() const
 {
-    return (static_cast<std::uint32_t>(R)) |
-        (static_cast<std::uint32_t>(G) << 8) |
-        (static_cast<std::uint32_t>(B) << 16) |
-        (static_cast<std::uint32_t>(A) << 24);
+    return (static_cast<uint32>(R)) |
+        (static_cast<uint32>(G) << 8) |
+        (static_cast<uint32>(B) << 16) |
+        (static_cast<uint32>(A) << 24);
 }
 
-std::uint32_t FColor::ToPackedBGRA() const
+uint32 FColor::ToPackedBGRA() const
 {
-    return (static_cast<std::uint32_t>(B)) |
-        (static_cast<std::uint32_t>(G) << 8) |
-        (static_cast<std::uint32_t>(R) << 16) |
-        (static_cast<std::uint32_t>(A) << 24);
+    return (static_cast<uint32>(B)) |
+        (static_cast<uint32>(G) << 8) |
+        (static_cast<uint32>(R) << 16) |
+        (static_cast<uint32>(A) << 24);
 }
 
 FColor FColor::Black() { return FColor(0, 0, 0, 255); }
@@ -59,12 +74,13 @@ FColor FColor::Transparent() { return FColor(0, 0, 0, 0); }
 
 FColor FColor::FromHex(const char* InHex)
 {
+	// 들어온 문자가 null 포인터면 Black 반환
     if (InHex == nullptr)
     {
         return FColor::Black();
     }
 
-    // # 스킵
+	// #은 스킵, 포인터를 한 칸 미뤄서 진짜 16진수 부분부터 읽게 함.
     if (*InHex == '#')
     {
         ++InHex;
@@ -72,7 +88,7 @@ FColor FColor::FromHex(const char* InHex)
 
     // 길이 계산
     size_t Length = 0;
-    while (InHex[Length] != '\0')
+	while (InHex[Length] != '\0')
     {
         ++Length;
     }

@@ -1,5 +1,4 @@
 #pragma once
-#include <cstdint>
 
 struct FArchive;
 
@@ -33,8 +32,8 @@ struct FColor
     void Set(uint8 InR, uint8 InG, uint8 InB, uint8 InA = 255);
 
     // 32비트 패킹
-    std::uint32_t ToPackedRGBA() const; // R | G<<8 | B<<16 | A<<24
-    std::uint32_t ToPackedBGRA() const; // B | G<<8 | R<<16 | A<<24 (D3D BGRA와 호환)
+    uint32 ToPackedRGBA() const; // R | G<<8 | B<<16 | A<<24
+    uint32 ToPackedBGRA() const; // B | G<<8 | R<<16 | A<<24 (D3D BGRA와 호환)
 
     // 헬퍼: 네임드 컬러
     static FColor Black();
