@@ -46,6 +46,8 @@
 #include "Source/Global/Function.h"
 #include "Source/Utility/Public/ScopeCycleCounter.h"
 #include "Source/Editor/Public/EditorEngine.h"
+#include "Global/Delegate.h"
+#include "Global/WeakObjectPtr.h"
 
 using std::clamp;
 using std::unordered_map;
