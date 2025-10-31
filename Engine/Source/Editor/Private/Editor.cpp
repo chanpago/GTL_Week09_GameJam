@@ -24,6 +24,12 @@
 #include "Render/ui/Viewport/Public/ViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 #include "Component/Collision/Public/ShapeComponent.h"
+#include "Component/Collision/Public/BoxComponent.h"
+#include "Component/Collision/Public/SphereComponent.h"
+#include "Component/Collision/Public/CapsuleComponent.h"
+#include "Physics/Public/BoundingCapsule.h"
+#include "Physics/Public/OBB.h"
+
 IMPLEMENT_CLASS(UEditor, UObject)
 
 UEditor::UEditor()
@@ -343,17 +349,50 @@ void UEditor::RenderCollision()
 			// else: 기본 ShapeColor 유지
 
 			// 바운딩 타입 처리
-			const IBoundingVolume* BV = Shape->GetBoundingBox();
-			if (!BV) { continue; }
+			const FVector WorldLocation = Shape->GetWorldLocation();
+			const FQuaternion WorldRotation = Shape->GetWorldRotationAsQuaternion();
+			const FVector WorldScale = Shape->GetWorldScale3D();
 
-			if (BV->GetType() == EBoundingVolumeType::AABB)
+			if (USphereComponent* Sphere = Cast<USphereComponent>(Shape))
 			{
-				FVector WMin, WMax;
-				Shape->GetWorldAABB(WMin, WMax);
-				FAABB WorldAABB(WMin, WMax);
-				BatchLines.RenderSingleBounding(&WorldAABB, WireColor);
+				const float RadiusLocal = Sphere->GetSphereRadius();
+				const float RadiusWorld = RadiusLocal * std::max(std::abs(WorldScale.X), std::max(std::abs(WorldScale.Y),
+					std::abs(WorldScale.Z)));
+				FBoundingSphere SphereVolume(WorldLocation, RadiusWorld);
+				BatchLines.RenderSingleBounding(&SphereVolume, WireColor);
+				continue;
 			}
-			else
+
+			if (UBoxComponent* Box = Cast<UBoxComponent>(Shape))
+			{
+				const FVector ExtentsLocal = Box->GetBoxExtent();
+				FVector ExtentsWorld(ExtentsLocal.X * std::abs(WorldScale.X),
+					ExtentsLocal.Y * std::abs(WorldScale.Y),
+					ExtentsLocal.Z * std::abs(WorldScale.Z));
+
+				FMatrix RotationMatrix = FMatrix::RotationMatrix(WorldRotation);
+				FMatrix ScaleRotation = RotationMatrix;
+
+				FOBB OBB(WorldLocation, ExtentsWorld, ScaleRotation);
+				BatchLines.RenderSingleBounding(&OBB, WireColor);
+				continue;
+
+			}
+
+			if (UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(Shape))
+			{
+				FCapsuleVolume CapsuleVolume;
+				CapsuleVolume.Center = WorldLocation;
+				CapsuleVolume.Axis = WorldRotation.RotateVector(FVector::UnitZ()).GetNormalized();
+				CapsuleVolume.CapsuleRadius = Capsule->GetCapsuleRadius() * std::min(std::abs(WorldScale.X),
+					std::abs(WorldScale.Y));
+				CapsuleVolume.CapsuleHalfHeight = Capsule->GetCapsuleHalfHeight() * std::abs(WorldScale.Z);
+				CapsuleVolume.ScaleRotation = FMatrix::RotationMatrix(WorldRotation);
+				BatchLines.RenderSingleBounding(&CapsuleVolume, WireColor);
+				continue;
+			}
+
+			if (const IBoundingVolume* BV = Shape->GetBoundingBox())
 			{
 				BatchLines.RenderSingleBounding(BV, WireColor);
 			}

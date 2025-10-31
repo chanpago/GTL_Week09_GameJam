@@ -7,6 +7,13 @@
 #include "Utility/Public/JsonSerializer.h"
 #include "Actor/Public/Actor.h"
 #include "Core/Public/Object.h"
+#include "Level/Public/Level.h"
+#include "Component/Collision/Public/ShapeComponent.h"
+#include "Component/Collision/Public/BoxComponent.h"
+#include "Component/Collision/Public/SphereComponent.h"
+#include "Component/Collision/Public/CapsuleComponent.h"
+#include "Physics/Public/BoundingSphere.h"
+#include "Physics/Public/BoundingCapsule.h"
 
 IMPLEMENT_ABSTRACT_CLASS(UPrimitiveComponent, USceneComponent)
 

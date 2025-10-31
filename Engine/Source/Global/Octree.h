@@ -30,7 +30,7 @@ public:
 	const TArray<UPrimitiveComponent*>& GetPrimitives() const { return Primitives; }
 	TArray<FOctree*>& GetChildren() { return Children; }
 	const TArray<FOctree*>& GetChildren() const { return Children; } 
-
+	void QueryOverlap(const FAABB& QueryBox, TArray<UPrimitiveComponent*>& OutCandidates) const;
 private:
 	bool IsLeaf() const { return Children[0] == nullptr; }
 	void Subdivide(UPrimitiveComponent* InPrimitive);

@@ -213,6 +213,10 @@ FMatrix FMatrix::RotationMatrix(const FVector& InOtherVector)
 
 	return Result;
 }
+FMatrix FMatrix::RotationMatrix(const FQuaternion& InOtherQuaternion)
+{
+	return InOtherQuaternion.ToRotationMatrix();
+}
 
 FMatrix FMatrix::CreateFromYawPitchRoll(const float yaw, const float pitch, const float roll)
 {
