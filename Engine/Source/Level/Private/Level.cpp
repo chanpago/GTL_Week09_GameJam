@@ -45,6 +45,8 @@ void ULevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 	// 불러오기
 	if (bInIsLoading)
 	{
+		LightComponents.clear();
+		ShapeComponents.clear();
 		// NOTE: 레벨 로드 시 NextUUID를 변경하면 UUID 충돌이 발생하므로 관련 기능 구현을 보류합니다.
 		uint32 NextUUID = 0;
 		FJsonSerializer::ReadUint32(InOutHandle, "NextUUID", NextUUID);
@@ -195,6 +197,14 @@ void ULevel::UnregisterComponent(UActorComponent* InComponent)
 		StaticOctree->Remove(PrimitiveComponent);
 	
 		OnPrimitiveUnregistered(PrimitiveComponent);
+		if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(PrimitiveComponent))
+		{
+			if (auto It = std::find(ShapeComponents.begin(), ShapeComponents.end(), ShapeComponent); It !=
+				ShapeComponents.end())
+			{
+				ShapeComponents.erase(It);
+			}
+		}
 	}
 	else if (auto LightComponent = Cast<ULightComponent>(InComponent))
 	{
@@ -226,7 +236,11 @@ void ULevel::AddLevelComponent(AActor* Actor)
 	{
 		if (auto PrimitiveComponent = Cast<UPrimitiveComponent>(Component))
 		{
-			OnPrimitiveUpdated(PrimitiveComponent);			
+			OnPrimitiveUpdated(PrimitiveComponent);		
+			if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(PrimitiveComponent))
+			{
+				ShapeComponents.push_back(ShapeComponent);
+			}
 		}
 		else if (auto LightComponent = Cast<ULightComponent>(Component))
 		{

@@ -1,5 +1,7 @@
 #pragma once
-
+#include "Physics/Public/BoundingVolume.h"
+#include "Global/Vector.h"
+#include "Global/Matrix.h"
 
 struct FCapsuleVolume : public IBoundingVolume
 {
@@ -16,8 +18,5 @@ struct FCapsuleVolume : public IBoundingVolume
     }
 
     bool RaycastHit() const override { return false; }
-    void Update(const FMatrix& WorldMatrix) override
-    {
-    }
     EBoundingVolumeType GetType() const override { return EBoundingVolumeType::Capsule; }
 };
