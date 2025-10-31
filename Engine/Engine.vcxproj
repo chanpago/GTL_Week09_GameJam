@@ -343,6 +343,7 @@
     <ClInclude Include="Source\Component\Public\DirectionalLightComponent.h" />
     <ClInclude Include="Source\Component\Public\EditorIconComponent.h" />
     <ClInclude Include="Source\Component\Public\LightComponentBase.h" />
+    <ClInclude Include="Source\Component\Public\ULuaScriptComponent.h" />
     <ClInclude Include="Source\Component\Public\PointLightComponent.h" />
     <ClInclude Include="Source\Component\Public\MovementComponent.h" />
     <ClInclude Include="Source\Component\Public\ProjectileMovementComponent.h" />
@@ -376,6 +377,7 @@
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
     <ClInclude Include="Source\Manager\Asset\Public\TextureManager.h" />
+    <ClInclude Include="Source\Manager\Lua\Public\LuaScriptManager.h" />
     <ClInclude Include="Source\Manager\Render\Public\CascadeManager.h" />
     <ClInclude Include="Source\Manager\UI\Public\ViewportManager.h" />
     <ClInclude Include="Source\Optimization\Public\OcclusionCuller.h" />
@@ -641,6 +643,7 @@
     <ClCompile Include="Source\Component\Private\EditorIconComponent.cpp" />
     <ClCompile Include="Source\Component\Private\LightComponent.cpp" />
     <ClCompile Include="Source\Component\Private\LightComponentBase.cpp" />
+    <ClCompile Include="Source\Component\Private\ULuaScriptComponent.cpp" />
     <ClCompile Include="Source\Component\Private\PointLightComponent.cpp" />
     <ClCompile Include="Source\Component\Private\MovementComponent.cpp" />
     <ClCompile Include="Source\Component\Private\ProjectileMovementComponent.cpp" />
@@ -675,6 +678,7 @@
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
     <ClCompile Include="Source\Manager\Asset\Private\TextureManager.cpp" />
+    <ClCompile Include="Source\Manager\Lua\Private\LuaScriptManager.cpp" />
     <ClCompile Include="Source\Manager\Render\Private\CascadeManager.cpp" />
     <ClCompile Include="Source\Manager\UI\Private\ViewportManager.cpp" />
     <ClCompile Include="Source\Optimization\Private\OcclusionCuller.cpp" />

@@ -13,8 +13,9 @@ class USceneComponent : public UActorComponent
 public:
 	USceneComponent();
 
-	void BeginPlay() override;
-	    void TickComponent(float DeltaTime) override;
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime) override;
+	virtual void EndPlay() override;
 	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 	
 	virtual void MarkAsDirty();

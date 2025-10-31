@@ -5,6 +5,7 @@
 #include "Core/Public/NewObject.h"
 
 class UUUIDTextComponent;
+class ULuaScriptComponent;
 /**
  * @brief Level에서 렌더링되는 UObject 클래스
  * UWorld로부터 업데이트 함수가 호출되면 component들을 순회하며 위치, 애니메이션, 상태 처리
@@ -113,16 +114,23 @@ public:
 	bool IsPendingDestroy() const { return bIsPendingDestroy; }
 	void SetIsPendingDestroy(bool bInIsPendingDestroy) { bIsPendingDestroy = bInIsPendingDestroy; }
 
+	// Lua Script support
+	void InitLuaScriptComponent();
+	bool BindSelfLuaProperties();
+	FString GetLuaScriptPathName();
+
 protected:
 	bool bCanEverTick = false;
 	bool bTickInEditor = false;
 	bool bBegunPlay = false;
 	/** @brief True if the actor is marked for destruction. */  
 	bool bIsPendingDestroy = false;
+	bool bUseScript = false;
 
 private:
 	USceneComponent* RootComponent = nullptr;
 	TArray<UActorComponent*> OwnedComponents;
+	ULuaScriptComponent* LuaScriptComponent = nullptr;
 	
 public:
 	virtual UObject* Duplicate() override;
