@@ -8,6 +8,7 @@
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Manager/Asset/Public/ObjManager.h"
 #include "Manager/Time/Public/TimeManager.h"
+#include "Manager/Lua/Public/LuaScriptManager.h" // LuaManager 헤더 추가
 
 #include "Manager/UI/Public/UIManager.h"
 #include "Manager/Config/Public/ConfigManager.h"
@@ -87,6 +88,7 @@ int FClientApp::InitializeSystem() const
 	// Initialize By Get Instance
 	UTimeManager::GetInstance();
 	UInputManager::GetInstance();
+	FLuaScriptManager::GetInstance().StartUp(); // LuaManager 초기화
 	
 	auto& Renderer = URenderer::GetInstance();
 	Renderer.Init(Window->GetWindowHandle());
@@ -120,6 +122,7 @@ void FClientApp::UpdateSystem() const
 	auto& InputManager = UInputManager::GetInstance();
 	auto& UIManager = UUIManager::GetInstance();
 	auto& Renderer = URenderer::GetInstance();
+	auto& LuaManager = FLuaScriptManager::GetInstance(); // LuaManager 인스턴스 가져오기
 	{
 		TIME_PROFILE(TimeManager)
 		TimeManager.Update();
@@ -135,6 +138,10 @@ void FClientApp::UpdateSystem() const
 	{
 		TIME_PROFILE(GEditor)
 		GEditor->Tick(DT);
+	}
+	{
+		TIME_PROFILE(LuaManager) // LuaManager 업데이트 프로파일링
+		LuaManager.Tick(TimeManager.GetDeltaTime());
 	}
 	{
 		TIME_PROFILE(UIManager)
@@ -203,6 +210,7 @@ void FClientApp::ShutdownSystem() const
 	delete GEditor;
 	delete Window;
 	
+	FLuaScriptManager::GetInstance().ShutDown(); // LuaManager 종료
 	UStatOverlay::GetInstance().Release();
 	UUIManager::GetInstance().Shutdown();
 	UAssetManager::GetInstance().Release();
