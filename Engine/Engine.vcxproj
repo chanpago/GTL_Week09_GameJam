@@ -383,6 +383,7 @@
     <ClInclude Include="Source\Optimization\Public\OcclusionCuller.h" />
     <ClInclude Include="Source\Optimization\Public\ViewVolumeCuller.h" />
     <ClInclude Include="Source\Physics\Public\AABB.h" />
+    <ClInclude Include="Source\Physics\Public\BoundingCapsule.h" />
     <ClInclude Include="Source\Physics\Public\BoundingSphere.h" />
     <ClInclude Include="Source\Physics\Public\BoundingVolume.h" />
     <ClInclude Include="Source\Core\Public\AppWindow.h" />
@@ -688,6 +689,7 @@
     <ClCompile Include="Source\Optimization\Private\OcclusionCuller.cpp" />
     <ClCompile Include="Source\Optimization\Private\ViewVolumeCuller.cpp" />
     <ClCompile Include="Source\Physics\Private\AABB.cpp" />
+    <ClCompile Include="Source\Physics\Private\BoundingCapsule.cpp" />
     <ClCompile Include="Source\Physics\Private\BoundingSphere.cpp" />
     <ClCompile Include="Source\Core\Private\AppWindow.cpp" />
     <ClCompile Include="Source\Core\Private\Class.cpp" />

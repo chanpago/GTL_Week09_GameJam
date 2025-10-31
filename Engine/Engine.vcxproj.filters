@@ -571,6 +571,7 @@
     <ClCompile Include="Source\Render\UI\Widget\Collision\Private\BoxComponentWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Collision\Private\SphereComponentWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Collision\Private\CapsuleComponentWidget.cpp" />
+    <ClCompile Include="Source\Physics\Private\BoundingCapsule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Global\BVH.h">
@@ -1140,6 +1141,7 @@
     <ClInclude Include="Source\Render\UI\Widget\Collision\Public\BoxComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Collision\Public\SphereComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Collision\Public\CapsuleComponentWidget.h" />
+    <ClInclude Include="Source\Physics\Public\BoundingCapsule.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\ClusteredRenderingCS.hlsli">
