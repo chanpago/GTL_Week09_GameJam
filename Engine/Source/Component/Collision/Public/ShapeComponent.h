@@ -17,14 +17,13 @@ public:
 
     bool ShouldDrawOnlyIfSelected() const { return bDrawOnlyIfSelected; }
     void SetDrawOnlyIfSelected(bool bInDrawOnlyIfSelected) { bDrawOnlyIfSelected = bInDrawOnlyIfSelected; }
-
+    virtual FColor GetDefaultWireColor() const { return FColor(200, 200, 200, 128); }
     virtual UObject* Duplicate() override;
 
 protected:
     virtual void DuplicateSubObjects(UObject* DuplicatedObject) override;
 
 protected:
-    // TODO(SDM) - FColor 만들기
-    FColor ShapeColor = FColor(255, 255, 255, 51);
+    FColor ShapeColor = FColor(255, 255, 255, 255);
     bool bDrawOnlyIfSelected = false;
 };

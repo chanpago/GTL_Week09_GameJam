@@ -23,7 +23,7 @@
 #include "Render/UI/Overlay/Public/D2DOverlayManager.h"
 #include "Render/ui/Viewport/Public/ViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
-
+#include "Component/Collision/Public/ShapeComponent.h"
 IMPLEMENT_CLASS(UEditor, UObject)
 
 UEditor::UEditor()
@@ -217,6 +217,102 @@ void UEditor::RenderEditorGeometry()
 {
 	// 3D 지오메트리 렌더링 (Grid 등, FXAA 전 SceneColor에 렌더링)
 	BatchLines.Render();
+	// 충돌 라인 컬러 규칙 (UE 스타일)
+	const FColor SelectedComponentColor(255, 200, 0, 255);   // 노란색
+	const FColor SiblingOfSelectedColor(255, 235, 130, 200);   // 흐릿한 노란색(컴포넌트 선택 시 같은 액터의 다른 충돌 컴포넌트)
+	ULevel* CurrentLevel = GWorld ? GWorld->GetLevel() : nullptr;
+	if (!CurrentLevel)
+	{
+		return;
+	}
+
+	UActorComponent* SelectedComp = GEditor->GetEditorModule()->GetSelectedComponent();
+	UShapeComponent* SelectedShape = Cast<UShapeComponent>(SelectedComp);
+	AActor* SelectedActor = GEditor->GetEditorModule()->GetSelectedActor();
+
+	// 모든 액터 순회
+	const TArray<AActor*>& Actors = CurrentLevel->GetLevelActors();
+	for (AActor* Actor : Actors)
+	{
+		if (!Actor) { continue; }
+
+
+		// 모드/컨텍스트 결정
+		const bool bActorSelectedStrict = (bIsActorSelected && SelectedActor && Actor == SelectedActor);
+
+		// 루트 선택 여부
+		const bool bRootSelected =
+			(SelectedComp != nullptr) &&
+			(SelectedActor != nullptr) &&
+			(Actor == SelectedActor) &&
+			(SelectedComp == Actor->GetRootComponent());
+		// 비충돌 컴포넌트 선택 여부
+		const bool bNonCollisionSelectedSameActor =
+			(SelectedComp != nullptr) &&
+			(SelectedActor != nullptr) &&
+			(Actor == SelectedActor) &&
+			(SelectedShape == nullptr) &&                          // 선택된 것이 충돌 컴포넌트가 아님
+			(SelectedComp != Actor->GetRootComponent());           // 그리고 루트도 아님
+		// 충돌 컴포넌트 선택 여부
+		const bool bCollisionSelectedSameActor =
+			(SelectedShape != nullptr) &&
+			(SelectedShape->GetOwner() == Actor);
+
+		// 이 액터의 모든 컴포넌트 순회
+		TArray<UActorComponent*>& Components = const_cast<TArray<UActorComponent*>&>(Actor->GetOwnedComponents());
+		for (UActorComponent* Comp : Components)
+		{
+			UShapeComponent* Shape = Cast<UShapeComponent>(Comp);
+			if (!Shape) { continue; }
+
+			// bDrawOnlyIfSelected == true 면, 아래 조건 중 하나라도 만족해야 표시
+			const bool bOnlyIfSelected = Shape->ShouldDrawOnlyIfSelected();
+			// 컴포넌트가 선택되어야 표시 함.
+			const bool bShouldShow =
+				(SelectedShape && Shape == SelectedShape) ||
+				(!bOnlyIfSelected); // 선택 필요없음
+			if (!bShouldShow)
+			{
+				continue;
+			}
+
+			// 표시 색 우선순위
+			FColor WireColor = Shape->GetShapeColor();
+
+			if (bRootSelected)
+			{
+				// 루트 선택: 이 액터의 모든 충돌 컴포넌트를 진한 노란색으로
+				WireColor = SelectedComponentColor;
+			}
+			else if (bCollisionSelectedSameActor)
+			{
+				// 충돌 컴포넌트 선택: 선택된 것은 진한/나머지는 더 흐릿
+				WireColor = (Shape == SelectedShape) ? SelectedComponentColor : SiblingOfSelectedColor;
+			}
+			else if (bNonCollisionSelectedSameActor)
+			{
+				// 비충돌 선택: 이 액터의 모든 충돌 컴포넌트는 흐릿한 노란색
+				WireColor = SiblingOfSelectedColor;
+			}
+			// else: 기본 ShapeColor 유지
+
+			// 바운딩 타입 처리
+			const IBoundingVolume* BV = Shape->GetBoundingBox();
+			if (!BV) { continue; }
+
+			if (BV->GetType() == EBoundingVolumeType::AABB)
+			{
+				FVector WMin, WMax;
+				Shape->GetWorldAABB(WMin, WMax);
+				FAABB WorldAABB(WMin, WMax);
+				BatchLines.RenderSingleBounding(&WorldAABB, WireColor);
+			}
+			else
+			{
+				BatchLines.RenderSingleBounding(BV, WireColor);
+			}
+		}
+	}
 }
 
 void UEditor::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
@@ -261,7 +357,6 @@ void UEditor::UpdateBatchLines()
 {
 	UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
 	if (!EditorWorld || !EditorWorld->GetLevel()) { return; }
-
 	uint64 ShowFlags = EditorWorld->GetLevel()->GetShowFlags();
 
 	if (ShowFlags & EEngineShowFlags::SF_Octree)
@@ -273,7 +368,6 @@ void UEditor::UpdateBatchLines()
 		// If we are not showing the octree, clear the lines, so they don't persist
 		BatchLines.ClearOctreeLines();
 	}
-
 	if (UActorComponent* Component = GetSelectedComponent())
 	{
 		if (UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(Component))
@@ -296,7 +390,6 @@ void UEditor::UpdateBatchLines()
 						BatchLines.UpdateDecalSpotLightVertices(Cast<UDecalSpotLightComponent>(Component));
 					}
 				}
-				return; 
 			}
 		}
 		if (ULightComponent* LightComponent = Cast<ULightComponent>(Component))
@@ -327,7 +420,10 @@ void UEditor::UpdateBatchLines()
 		}
 	}
 
-	BatchLines.DisableRenderBoundingBox();
+	if (!(ShowFlags & EEngineShowFlags::SF_Bounds))
+	{
+		BatchLines.DisableRenderBoundingBox();
+	}
 }
 
 
@@ -1045,6 +1141,7 @@ void UEditor::SelectActor(AActor* InActor)
 				Component->OnDeselected();
 			}
 		}
+		bIsActorSelected = true;
 	}
 
 	SelectedActor = InActor;
@@ -1100,6 +1197,7 @@ void UEditor::SelectActorAndComponent(AActor* InActor, UActorComponent* InCompon
 
 	SelectedActor = InActor;
 	SelectComponent(InComponent);
+	bIsActorSelected = false;
 }
 
 void UEditor::SelectComponent(UActorComponent* InComponent)
@@ -1117,6 +1215,12 @@ void UEditor::SelectComponent(UActorComponent* InComponent)
 	{
 		SelectedComponent->OnSelected();
 		Gizmo.SetSelectedComponent(Cast<USceneComponent>(SelectedComponent));
+		// 컴포넌트 선택 모드 진입 + SelectedActor 동기화
+		bIsActorSelected = false;
+		if (AActor* Owner = SelectedComponent->GetOwner())
+		{
+			SelectedActor = Owner;
+		}
 	}
 	else
 	{

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Component/Collision/Public/SphereComponent.h"
 #include "Utility/Public/JsonSerializer.h"
-
+#include "Render/UI/Widget/Collision/Public/SphereComponentWidget.h"
 IMPLEMENT_CLASS(USphereComponent, UShapeComponent)
 
 USphereComponent::USphereComponent()
@@ -9,6 +9,7 @@ USphereComponent::USphereComponent()
     const FVector Extents = FVector(SphereRadius, SphereRadius, SphereRadius);
     BoundingBox = new FAABB(-Extents, Extents);
     bOwnsBoundingBox = true;
+    SetShapeColor(GetDefaultWireColor());
 }
 
 void USphereComponent::SetSphereRadius(float InRadius)
@@ -24,7 +25,11 @@ void USphereComponent::SetSphereRadius(float InRadius)
         MarkAsDirty();
     }
 }
-
+FColor USphereComponent::GetDefaultWireColor() const
+{
+    // Red 계열
+    return FColor(255, 0, 0, 255);
+}
 void USphereComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
@@ -49,7 +54,10 @@ UObject* USphereComponent::Duplicate()
     Duplicated->SetSphereRadius(SphereRadius);
     return Duplicated;
 }
-
+UClass* USphereComponent::GetSpecificWidgetClass() const
+{
+    return USphereComponentWidget::StaticClass();
+}
 void USphereComponent::DuplicateSubObjects(UObject* DuplicatedObject)
 {
     Super::DuplicateSubObjects(DuplicatedObject);

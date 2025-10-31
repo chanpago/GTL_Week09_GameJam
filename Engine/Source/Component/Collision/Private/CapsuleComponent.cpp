@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Component/Collision/Public/CapsuleComponent.h"
 #include "Utility/Public/JsonSerializer.h"
-
+#include "Render/UI/Widget/Collision/Public/CapsuleComponentWidget.h"
 IMPLEMENT_CLASS(UCapsuleComponent, UShapeComponent)
 
 static void UpdateCapsuleAABB(IBoundingVolume*& InOutVolume, bool& InOutOwns, float InHalfHeight, float InRadius)
@@ -21,6 +21,7 @@ static void UpdateCapsuleAABB(IBoundingVolume*& InOutVolume, bool& InOutOwns, fl
 UCapsuleComponent::UCapsuleComponent()
 {
     UpdateCapsuleAABB(BoundingBox, bOwnsBoundingBox, CapsuleHalfHeight, CapsuleRadius);
+    SetShapeColor(GetDefaultWireColor());
 }
 
 void UCapsuleComponent::SetCapsuleHalfHeight(float InHalfHeight)
@@ -35,6 +36,12 @@ void UCapsuleComponent::SetCapsuleRadius(float InRadius)
     CapsuleRadius = InRadius;
     UpdateCapsuleAABB(BoundingBox, bOwnsBoundingBox, CapsuleHalfHeight, CapsuleRadius);
     MarkAsDirty();
+}
+
+FColor UCapsuleComponent::GetDefaultWireColor() const
+{
+    // Cyan 계열(가시성 높음)
+    return FColor(0, 200, 255, 255);
 }
 
 void UCapsuleComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
@@ -69,6 +76,10 @@ UObject* UCapsuleComponent::Duplicate()
     Duplicated->SetCapsuleHalfHeight(CapsuleHalfHeight);
     Duplicated->SetCapsuleRadius(CapsuleRadius);
     return Duplicated;
+}
+UClass* UCapsuleComponent::GetSpecificWidgetClass() const
+{
+    return UCapsuleComponentWidget::StaticClass();
 }
 
 void UCapsuleComponent::DuplicateSubObjects(UObject* DuplicatedObject)

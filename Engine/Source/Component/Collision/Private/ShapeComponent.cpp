@@ -15,7 +15,7 @@ void UShapeComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
     {
         // 1) 색상 로드: 배열 [R,G,B,A] 또는 "#RRGGBB"/"#RRGGBBAA"
         FColor LoadedColor = GetShapeColor(); // 기본값: 현재 보유 색상
-        FJsonSerializer::ReadColor(InOutHandle, "ShapeColor", LoadedColor, FColor(255, 255, 255, 51));
+        FJsonSerializer::ReadColor(InOutHandle, "ShapeColor", LoadedColor, FColor(255, 255, 255, 255));
         SetShapeColor(LoadedColor);
 
         // 2) 플래그 로드: 문자열 "true"/"false" 패턴 유지

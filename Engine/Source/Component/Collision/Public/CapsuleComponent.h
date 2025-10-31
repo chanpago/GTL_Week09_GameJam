@@ -16,10 +16,11 @@ public:
 
     void SetCapsuleHalfHeight(float InHalfHeight);
     void SetCapsuleRadius(float InRadius);
+    FColor GetDefaultWireColor() const override;
 
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     virtual UObject* Duplicate() override;
-
+    UClass* GetSpecificWidgetClass() const override;
 protected:
     void DuplicateSubObjects(UObject* DuplicatedObject) override;
 

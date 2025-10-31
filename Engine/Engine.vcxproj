@@ -328,6 +328,9 @@
     </ClInclude>
     <ClInclude Include="Source\Actor\Public\TextActor.h" />
     <ClInclude Include="Source\Actor\Public\TriangleActor.h" />
+    <ClInclude Include="Source\Component\Collision\Public\BoxComponent.h" />
+    <ClInclude Include="Source\Component\Collision\Public\CapsuleComponent.h" />
+    <ClInclude Include="Source\Component\Collision\Public\SphereComponent.h" />
     <ClInclude Include="Source\Component\Mesh\Public\MeshComponent.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
@@ -348,6 +351,7 @@
     <ClInclude Include="Source\Component\Public\ProjectileMovementComponent.h" />
     <ClInclude Include="Source\Component\Public\RotatingMovementComponent.h" />
     <ClInclude Include="Source\Component\Public\HeightFogComponent.h" />
+    <ClInclude Include="Source\Component\Collision\Public\ShapeComponent.h" />
     <ClInclude Include="Source\Component\Public\SpotLightComponent.h" />
     <ClInclude Include="Source\Component\Public\TextComponent.h" />
     <ClInclude Include="Source\Component\Public\LightComponent.h" />
@@ -362,6 +366,7 @@
     <ClInclude Include="Source\Core\Public\WindowsBinWriter.h" />
     <ClInclude Include="Source\Editor\Public\EditorEngine.h" />
     <ClInclude Include="Source\Global\BVH.h" />
+    <ClInclude Include="Source\Global\Color.h" />
     <ClInclude Include="Source\Global\Octree.h" />
     <ClInclude Include="Source\Global\Quaternion.h" />
     <ClInclude Include="Source\Global\Rotator.h" />
@@ -450,6 +455,9 @@
     <ClInclude Include="Source\Render\Shadow\Public\PSMCalculator.h" />
     <ClInclude Include="Source\Render\UI\Overlay\Public\D2DOverlayManager.h" />
     <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapFilterPass.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Collision\Public\BoxComponentWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Collision\Public\CapsuleComponentWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Collision\Public\SphereComponentWidget.h" />
     <ClInclude Include="Source\Texture\Public\ShadowMapResources.h" />
     <ClInclude Include="Source\Render\UI\Factory\Public\UIWindowFactory.h" />
     <ClInclude Include="Source\Render\UI\ImGui\Public\ImGuiHelper.h" />
@@ -620,6 +628,10 @@
     </ClCompile>
     <ClCompile Include="Source\Actor\Private\TextActor.cpp" />
     <ClCompile Include="Source\Actor\Private\TriangleActor.cpp" />
+    <ClCompile Include="Source\Component\Collision\Private\BoxComponent.cpp" />
+    <ClCompile Include="Source\Component\Collision\Private\ShapeComponent.cpp" />
+    <ClCompile Include="Source\Component\Collision\Private\SphereComponent.cpp" />
+    <ClCompile Include="Source\Component\Collision\Private\CapsuleComponent.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\MeshComponent.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
@@ -659,6 +671,7 @@
     <ClCompile Include="Source\Editor\Private\GizmoMath.cpp" />
     <ClCompile Include="Source\Editor\Private\GizmoRenderer.cpp" />
     <ClCompile Include="Source\Global\BVH.cpp" />
+    <ClCompile Include="Source\Global\Color.cpp" />
     <ClCompile Include="Source\Global\Octree.cpp" />
     <ClCompile Include="Source\Global\Quaternion.cpp" />
     <ClCompile Include="Source\Level\Private\World.cpp" />
@@ -731,6 +744,9 @@
     <ClCompile Include="Source\Render\Shadow\Private\PSMCalculator.cpp" />
     <ClCompile Include="Source\Render\UI\Overlay\Private\D2DOverlayManager.cpp" />
     <ClCompile Include="Source\Render\UI\Overlay\Private\StatOverlay.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Collision\Private\BoxComponentWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Collision\Private\CapsuleComponentWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Collision\Private\SphereComponentWidget.cpp" />
     <ClCompile Include="Source\Texture\Private\ShadowMapResources.cpp" />
     <ClCompile Include="Source\Render\UI\Factory\Private\UIWindowFactory.cpp" />
     <ClCompile Include="Source\Render\UI\ImGui\Private\ImGuiHelper.cpp" />

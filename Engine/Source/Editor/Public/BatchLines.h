@@ -72,5 +72,13 @@ private:
 
 	bool bRenderBox;
 	bool bRenderSpotLight = false;
+
+/* =========================
+ *	Collision Section
+   ========================= */
+public:
+	void RenderSingleBounding(const IBoundingVolume* InBounding, const FColor& InColor);
+private:
+	TArray<UBoundingBoxLines> CollisionLines;
 };
 
