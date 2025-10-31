@@ -52,43 +52,59 @@ FQuaternion FQuaternion::FromEuler(const FVector& EulerDeg)
 
 FQuaternion FQuaternion::FromRotationMatrix(const FMatrix& M)
 {
+    // UE Standard: TQuat<T>::TQuat(const TMatrix<T>& M)
+    // Reference: UnrealEngine/Engine/Source/Runtime/Core/Public/Math/Quat.h (line 777-849)
     FQuaternion Q;
-    float trace = M.Data[0][0] + M.Data[1][1] + M.Data[2][2];
-    if (trace > 0)
+
+    // Check diagonal (trace)
+    const float tr = M.Data[0][0] + M.Data[1][1] + M.Data[2][2];
+
+    if (tr > 0.0f)
     {
-        float s = 0.5f / sqrtf(trace + 1.0f);
-        Q.W = 0.25f / s;
+        // Trace > 0: Standard case
+        float InvS = 1.0f / sqrtf(tr + 1.0f);
+        Q.W = 0.5f * (1.0f / InvS);
+        float s = 0.5f * InvS;
+
         Q.X = (M.Data[1][2] - M.Data[2][1]) * s;
         Q.Y = (M.Data[2][0] - M.Data[0][2]) * s;
         Q.Z = (M.Data[0][1] - M.Data[1][0]) * s;
     }
     else
     {
-        if (M.Data[0][0] > M.Data[1][1] && M.Data[0][0] > M.Data[2][2])
+        // Trace <= 0: Find largest diagonal element
+        int i = 0;
+        if (M.Data[1][1] > M.Data[0][0])
         {
-            float s = 2.0f * sqrtf(1.0f + M.Data[0][0] - M.Data[1][1] - M.Data[2][2]);
-            Q.W = (M.Data[1][2] - M.Data[2][1]) / s; // 부호 반전
-            Q.X = 0.25f * s;
-            Q.Y = (M.Data[0][1] + M.Data[1][0]) / s;
-            Q.Z = (M.Data[0][2] + M.Data[2][0]) / s;
+            i = 1;
         }
-        else if (M.Data[1][1] > M.Data[2][2])
+        if (M.Data[2][2] > M.Data[i][i])
         {
-            float s = 2.0f * sqrtf(1.0f + M.Data[1][1] - M.Data[0][0] - M.Data[2][2]);
-            Q.W = (M.Data[2][0] - M.Data[0][2]) / s; // 부호 반전
-            Q.X = (M.Data[0][1] + M.Data[1][0]) / s;
-            Q.Y = 0.25f * s;
-            Q.Z = (M.Data[1][2] + M.Data[2][1]) / s;
+            i = 2;
         }
-        else
-        {
-            float s = 2.0f * sqrtf(1.0f + M.Data[2][2] - M.Data[0][0] - M.Data[1][1]);
-            Q.W = (M.Data[0][1] - M.Data[1][0]) / s; // 부호 반전
-            Q.X = (M.Data[0][2] + M.Data[2][0]) / s;
-            Q.Y = (M.Data[1][2] + M.Data[2][1]) / s;
-            Q.Z = 0.25f * s;
-        }
+
+        static constexpr int nxt[3] = { 1, 2, 0 };
+        const int j = nxt[i];
+        const int k = nxt[j];
+
+        float s = M.Data[i][i] - M.Data[j][j] - M.Data[k][k] + 1.0f;
+        float InvS = 1.0f / sqrtf(s);
+
+        float qt[4];
+        qt[i] = 0.5f * (1.0f / InvS);
+
+        s = 0.5f * InvS;
+
+        qt[3] = (M.Data[j][k] - M.Data[k][j]) * s;
+        qt[j] = (M.Data[i][j] + M.Data[j][i]) * s;
+        qt[k] = (M.Data[i][k] + M.Data[k][i]) * s;
+
+        Q.X = qt[0];
+        Q.Y = qt[1];
+        Q.Z = qt[2];
+        Q.W = qt[3];
     }
+
     return Q;
 }
 
@@ -226,7 +242,7 @@ FVector FQuaternion::RotateVector(const FQuaternion& q, const FVector& v)
 FVector FQuaternion::RotateVector(const FVector& V) const
 {
 	const FVector Q(X, Y, Z);
-	const FVector TT = V.Cross(Q) * 2.f;
-	const FVector Result = V + (TT * W) + TT.Cross(Q);
+	const FVector T = 2.f * Q.Cross(V);
+	const FVector Result = V + (W * T) + Q.Cross(T);
 	return Result;
 }

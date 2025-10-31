@@ -169,6 +169,7 @@ public:
 	bool HasComponent() const { return TargetComponent; }
 	FVector GetPreviousMouseLocation() const { return PreviousMouseLocation; }
 	FVector2 GetPreviousScreenPos() const { return PreviousScreenPos; }
+	FVector2 GetDragStartScreenPos() const { return DragStartScreenPos; }
 	float GetCurrentRotationAngle() const { return CurrentRotationAngle; }
 	float GetCurrentRotationAngleDegrees() const { return FVector::GetRadianToDegree(CurrentRotationAngle); }
 	float GetSnappedRotationAngle(float SnapAngleDegrees) const

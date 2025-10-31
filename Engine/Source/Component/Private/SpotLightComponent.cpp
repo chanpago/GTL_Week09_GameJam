@@ -84,7 +84,7 @@ void USpotLightComponent::RenderLightDirectionGizmo(UCamera* InCamera, const D3D
 	const float ViewportHeight = InViewport.Height;
 
 	float Scale = 1.0f;
-	const float DesiredPixelSize = 60.0f;
+	const float DesiredPixelSize = 30.0f;
 
 	if (ViewportHeight > 1.0f)
 	{

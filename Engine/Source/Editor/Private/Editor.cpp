@@ -744,97 +744,39 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 		// NDC로 변환
 		GizmoScreenPos4 *= (1.0f / GizmoScreenPos4.W);
 
-		// NDC → 뷰포트 로컬 좌표 (뷰포트 내 상대 좌표)
-		const FVector2 GizmoLocalPos(
+		// NDC → 뷰포트 로컬 좌표
+		const FVector2 GizmoScreenPos(
 			(GizmoScreenPos4.X * 0.5f + 0.5f) * ViewportWidth,
 			((-GizmoScreenPos4.Y) * 0.5f + 0.5f) * ViewportHeight
 		);
 
-		// 현재 마우스 스크린 좌표 (윈도우 전체 기준)
+		// 현재 마우스 스크린 좌표
 		POINT MousePos;
 		GetCursorPos(&MousePos);
 		ScreenToClient(GetActiveWindow(), &MousePos);
 
-		// 마우스를 뷰포트 로컬 좌표로 변환
 		const FVector2 CurrentScreenPos(
 			static_cast<float>(MousePos.x) - ViewportLeft,
 			static_cast<float>(MousePos.y) - ViewportTop
 		);
 
-		// 회전축의 스크린 공간 방향 계산
-		FVector2 TangentDir;
+		// UE5 표준: 드래그 시작 지점에서 기즈모로의 방향 (Origin = DragStartPos in UE)
+		const FVector2 DragStartScreenPos = Gizmo.GetDragStartScreenPos();
+		const FVector2 DirectionToMousePos = (DragStartScreenPos - GizmoScreenPos).GetNormalized();
 
-		if (InActiveCamera->GetCameraType() == ECameraType::ECT_Orthographic)
+		// Tangent 방향: DirectionToMousePos에 수직 (시계방향 회전)
+		FVector2 TangentDir = FVector2(-DirectionToMousePos.Y, DirectionToMousePos.X);
+
+		// 각 축마다 TangentDir 방향 조정
+		if (Gizmo.GetGizmoDirection() == EGizmoDirection::Right)
 		{
-			// 직교 뷰: 회전 평면을 이루는 두 축의 끝점을 스크린에 투영
-			// 각 축마다 다른 BaseAxis 사용
-			FVector Axis0, Axis1;
-			switch (Gizmo.GetGizmoDirection())
-			{
-			case EGizmoDirection::Forward:  // X축: Z→Y
-				Axis0 = FVector(0, 0, 1);
-				Axis1 = FVector(0, 1, 0);
-				break;
-			case EGizmoDirection::Right:    // Y축: X→Z
-				Axis0 = FVector(1, 0, 0);
-				Axis1 = FVector(0, 0, 1);
-				break;
-			case EGizmoDirection::Up:       // Z축: X→Y
-				Axis0 = FVector(1, 0, 0);
-				Axis1 = FVector(0, 1, 0);
-				break;
-			default:
-				Axis0 = FVector(0, 0, 1);
-				Axis1 = FVector(0, 1, 0);
-				break;
-			}
-
-			const FQuaternion ComponentRot = Gizmo.IsWorldMode() ? FQuaternion::Identity() : Gizmo.GetDragStartActorRotationQuat();
-			const FVector RotatedAxis0 = ComponentRot.RotateVector(Axis0);
-			const FVector RotatedAxis1 = ComponentRot.RotateVector(Axis1);
-
-			FVector4 Axis0World4 = FVector4(GizmoLocation + RotatedAxis0 * 64.0f, 1.0f);
-			FVector4 Axis1World4 = FVector4(GizmoLocation + RotatedAxis1 * 64.0f, 1.0f);
-			FVector4 Axis0Screen4 = Axis0World4 * ViewProj;
-			FVector4 Axis1Screen4 = Axis1World4 * ViewProj;
-
-			FVector2 Axis0ScreenPos(0, 0);
-			FVector2 Axis1ScreenPos(0, 0);
-
-			if (Axis0Screen4.W > 0.0f)
-			{
-				Axis0Screen4 *= (1.0f / Axis0Screen4.W);
-				Axis0ScreenPos = FVector2(
-					(Axis0Screen4.X * 0.5f + 0.5f) * ViewportWidth,
-					((-Axis0Screen4.Y) * 0.5f + 0.5f) * ViewportHeight
-				);
-			}
-
-			if (Axis1Screen4.W > 0.0f)
-			{
-				Axis1Screen4 *= (1.0f / Axis1Screen4.W);
-				Axis1ScreenPos = FVector2(
-					(Axis1Screen4.X * 0.5f + 0.5f) * ViewportWidth,
-					((-Axis1Screen4.Y) * 0.5f + 0.5f) * ViewportHeight
-				);
-			}
-
-			FVector2 AxisScreenDir = (Axis1ScreenPos - Axis0ScreenPos).GetNormalized();
-			TangentDir = AxisScreenDir;
-		}
-		else
-		{
-			// 원근 뷰: 축 방향을 View 변환하여 스크린 방향 계산
-			// 회전축에 수직인 방향을 tangent로 사용
-			FVector4 RotAxisView = FVector4(WorldRotationAxis, 0.0f) * CamConst.View;
-			FVector2 AxisScreenDir(RotAxisView.X, -RotAxisView.Y);
-			AxisScreenDir = AxisScreenDir.GetNormalized();
-			TangentDir = FVector2(-AxisScreenDir.Y, AxisScreenDir.X);
+			TangentDir = -TangentDir;
 		}
 
-		// 스크린 공간 드래그 벡터 (정규화하지 않음)
+		// 스크린 공간 드래그 벡터 (UE5 표준: Y축 반전)
 		const FVector2 PrevScreenPos = Gizmo.GetPreviousScreenPos();
-		const FVector2 DragDir = CurrentScreenPos - PrevScreenPos;
+		const FVector2 DragDelta = CurrentScreenPos - PrevScreenPos;
+		const FVector2 DragDir = FVector2(DragDelta.X, -DragDelta.Y); // Y축 반전
 
 		// 마우스가 실제로 움직였는지 체크
 		const float DragDistSq = DragDir.LengthSquared();
@@ -842,7 +784,7 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 
 		if (DragDistSq > MinDragDistSq)
 		{
-			// Dot Product로 회전 각도 계산
+			// UE5 표준: Dot Product로 회전 각도 계산
 			float PixelDelta = TangentDir.Dot(DragDir);
 
 			// 픽셀을 각도(라디안)로 변환 (언리얼에선 1픽셀 = 1도 사용, 어차피 감도 조절용 매직 넘버라 그대로 차용)

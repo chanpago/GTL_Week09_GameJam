@@ -182,10 +182,8 @@ void FPSMCalculator::BuildUniformShadowMap(
 	const FCameraConstants& CamConstants = Camera->GetFViewProjConstants();
 	FMatrix CameraView = CamConstants.View;
 
-	// 뷰 공간 빛 방향 가져오기
-	// PSM 알고리즘은 Sample PracticalPSM과 동일하게 "씬에서 빛을 향하는 방향"을 사용
-	// GetForwardVector()는 "빛이 비추는 방향"이므로 부호를 반전
-	FVector ViewLightDir = CameraView.TransformVector(-LightDirection.GetNormalized());
+	// 월드 공간 빛 방향
+	FVector WorldLightDir = LightDirection.GetNormalized();
 
 	// 씬 AABB 계산
 	FPSMBoundingBox SceneBox;
@@ -206,20 +204,29 @@ void FPSMCalculator::BuildUniformShadowMap(
 		SceneBox.MaxPt = FVector(Width, Height, FarDist);
 	}
 
-	// 빛 위치 (씬 중심에서 멀리, 빛의 반대 방향)
-	FVector SceneCenter = SceneBox.GetCenter();
-	float SceneRadius = (SceneBox.MaxPt - SceneBox.MinPt).Length() * 0.5f;
+	// Directional Light View Matrix를 Camera / Cascade와 동일한 방식으로 생성
+	// X-forward Z-up LH 좌표계에 맞춰 Right, Up, Forward 계산
+	FVector Forward = WorldLightDir;
+	Forward.Normalize();
 
-	// 빛은 비추는 방향의 반대쪽에 위치
-	FVector LightPos = SceneCenter - ViewLightDir * (SceneRadius + 50.0f);
+	// WorldUp 벡터 선택 (빛이 거의 수직이면 다른 축 사용)
+	FVector WorldUp = ZUp;
+	if (std::abs(Forward.Z) > 0.99f)
+	{
+		WorldUp = XForward;
+	}
 
-	// 위쪽 벡터 선택
-	FVector Up = ZUp;
-	if (std::abs(ViewLightDir.Z) > 0.99f)
-		Up = XForward;
+	// Right = WorldUp × Forward (LH 외적)
+	FVector Right = WorldUp.Cross(Forward);
+	Right.Normalize();
 
-	// 라이트 뷰 행렬 생성
-	OutView = FMatrix::CreateLookAtLH(LightPos, SceneCenter, Up);
+	// Up = Forward × Right
+	FVector Up = Forward.Cross(Right);
+	Up.Normalize();
+
+	// View Matrix = [Right | Up | Forward]^T (Camera/Cascade와 동일 구조)
+	FMatrix ViewRot = FMatrix(Right, Up, Forward);
+	OutView = ViewRot.Transpose();
 
 	// 씬 AABB를 라이트 공간으로 변환
 	FPSMBoundingBox LightSpaceBox;
@@ -266,9 +273,7 @@ void FPSMCalculator::BuildPSMProjection(
 {
 	const FCameraConstants& CamConstants = Camera->GetFViewProjConstants();
 	FMatrix CameraView = CamConstants.View;
-	// PSM 알고리즘은 Sample PracticalPSM과 동일하게 "씬에서 빛을 향하는 방향"을 사용
-	// GetForwardVector()는 "빛이 비추는 방향"이므로 부호를 반전
-	FVector ViewLightDir = CameraView.TransformVector(-LightDirection.GetNormalized());
+	FVector ViewLightDir = CameraView.TransformVector(LightDirection.GetNormalized());
 
 	// 단계 1: 슬라이드 백이 적용된 가상 카메라 설정
 	FMatrix VirtualCameraView = FMatrix::Identity();

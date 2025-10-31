@@ -1142,7 +1142,7 @@ FIllumination CalculateDirectionalLight(FDirectionalLightInfo Info, float3 World
     if (dot(Info.Direction, Info.Direction) < 1e-12 || dot(WorldNormal, WorldNormal) < 1e-12)
         return Result;
 
-    float3 LightDir = SafeNormalize3(-Info.Direction);
+    float3 LightDir = SafeNormalize3(Info.Direction);
     float NdotL = saturate(dot(WorldNormal, LightDir));
 
 #if LIGHTING_MODEL_GOURAUD

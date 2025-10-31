@@ -800,10 +800,13 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 		const float ArcInnerRadius = RotateCollisionConfig.InnerRadius * 0.98f;
 		const float ArcOuterRadius = RotateCollisionConfig.OuterRadius * 1.02f;
 
+		// Arc 시작 방향: World 모드는 Axis0, Local 모드는 물체의 로컬 0 지점 (회전 적용 전 BaseAxis0)
+		FVector StartDir = bIsWorld ? FVector(0,0,0) : BaseRot.RotateVector(BaseAxis0);
+
 		// Inner/Outer Circle과 동일 평면: RenderWorldAxis 사용 (이미 회전된 월드 공간)
 		FGizmoGeometry::GenerateRotationArcMesh(RenderWorldAxis0, RenderWorldAxis1,
 			ArcInnerRadius, ArcOuterRadius, RotateCollisionConfig.Thickness,
-			DisplayAngle, FVector(0,0,0), arcVertices, arcIndices);
+			DisplayAngle, StartDir, arcVertices, arcIndices);
 
 		if (!arcIndices.empty())
 		{

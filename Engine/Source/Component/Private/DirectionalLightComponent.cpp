@@ -134,40 +134,12 @@ void UDirectionalLightComponent::RenderLightDirectionGizmo(UCamera* InCamera, co
     FVector LightLocation = GetWorldLocation();
     FQuaternion LightRotation = GetWorldRotationAsQuaternion();
 
-    // Gizmo와 동일한 Screen Space Scale 계산
-    const FCameraConstants& CameraConstants = InCamera->GetFViewProjConstants();
-    const FMatrix& ProjMatrix = CameraConstants.Projection;
-    const ECameraType CameraType = InCamera->GetCameraType();
-    const float ViewportHeight = InViewport.Height;
-
-    float Scale = 1.0f;
-    const float DesiredPixelSize = 60.0f;
-
-    if (ViewportHeight > 1.0f)
-    {
-        float ProjYY = std::abs(ProjMatrix.Data[1][1]);
-        if (ProjYY > 0.0001f)
-        {
-            if (CameraType == ECameraType::ECT_Perspective)
-            {
-                const FMatrix& ViewMatrix = CameraConstants.View;
-                FVector4 GizmoPos4(LightLocation.X, LightLocation.Y, LightLocation.Z, 1.0f);
-                FVector4 ViewSpacePos = GizmoPos4 * ViewMatrix;
-                float ProjectedDepth = std::max(std::abs(ViewSpacePos.Z), 1.0f);
-                Scale = (DesiredPixelSize * ProjectedDepth) / (ProjYY * ViewportHeight * 0.5f);
-            }
-            else // Orthographic
-            {
-                float OrthoHeight = 2.0f / ProjYY;
-                Scale = (DesiredPixelSize * OrthoHeight) / ViewportHeight;
-            }
-            Scale = std::max(0.01f, std::min(Scale, 100.0f));
-        }
-    }
+    // 고정 스케일 사용
+    constexpr float FixedScale = 5.0f;
 
     LightDirectionArrow.Location = LightLocation;
     LightDirectionArrow.Rotation = LightRotation;
-    LightDirectionArrow.Scale = FVector(Scale, Scale, Scale);
+    LightDirectionArrow.Scale = FVector(FixedScale, FixedScale, FixedScale);
 
     FRenderState RenderState;
     RenderState.FillMode = EFillMode::Solid;
@@ -180,7 +152,8 @@ FDirectionalLightInfo UDirectionalLightComponent::GetDirectionalLightInfo() cons
 {
     FDirectionalLightInfo Info;
     Info.Color = FVector4(LightColor, 1);
-    Info.Direction = GetForwardVector();
+    // Direction: "표면에서 광원으로 향하는 벡터" (화살표 반대 방향)
+    Info.Direction = -GetForwardVector();
     Info.Intensity = Intensity;
 
     // Shadow parameters

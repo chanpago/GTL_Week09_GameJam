@@ -52,7 +52,7 @@ void UAmbientLightComponent::EnsureVisualizationIcon()
 	Icon->AttachToComponent(this);
 	Icon->SetIsVisualizationComponent(true);
 	Icon->SetSprite(UAssetManager::GetInstance().LoadTexture("Data/Icons/SkyLight.png"));
-	Icon->SetRelativeScale3D(FVector(5.f, 5.f, 5.f));
+	Icon->SetRelativeScale3D(FVector(2.5f, 2.5f, 2.5f));
 	Icon->SetScreenSizeScaled(true);
 
 	VisualizationIcon = Icon;

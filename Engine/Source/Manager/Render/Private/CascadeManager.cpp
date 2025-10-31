@@ -95,17 +95,21 @@ FCascadeShadowMapData UCascadeManager::GetCascadeShadowMapData(
 
     FMatrix CameraViewInverse = InCamera->GetFViewProjConstantsInverse().View;
 
-    // Directional Light의 View Matrix를 Camera와 동일한 방식으로 계산
-    // Camera는 Right, Up, Forward를 cross product로 계산하여 좌표축 재정의 수행
+    // Directional Light의 View Matrix 계산
+    // 라이트가 향하는 방향의 반대쪽에서 바라보는 View 행렬 생성
     FQuaternion LightRotation = InDirectionalLight->GetWorldRotationAsQuaternion();
-    FVector Forward = LightRotation.RotateVector(FVector::ForwardVector());
+    FVector LightForward = LightRotation.RotateVector(FVector::ForwardVector());
     FVector WorldUp = LightRotation.RotateVector(FVector::UpVector());
-    FVector Right = WorldUp.Cross(Forward);
+
+    // View 행렬의 Forward는 빛이 나아가는 방향 (화살표 방향)
+    FVector Forward = LightForward;
+    // LH 좌표계에서 Right 계산 (좌우 반전 수정)
+    FVector Right = Forward.Cross(WorldUp);
     Right.Normalize();
     FVector Up = Forward.Cross(Right);
     Up.Normalize();
 
-    // View Matrix = [Right | Up | Forward]^T (Camera와 동일한 구조)
+    // View Matrix = [Right | Up | Forward]^T
     FMatrix ViewRot = FMatrix(Right, Up, Forward);
     ViewRot = ViewRot.Transpose();
     CascadeShadowMapData.View = ViewRot;
