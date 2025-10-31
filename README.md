@@ -1,8 +1,8 @@
 # FutureEngine - Recent Features & Improvements
 
-## 📅 업데이트 히스토리 (2024.10.23 ~ 2024.10.30)
+## 📅 업데이트 히스토리 (2025.10.23 ~ 2025.10.30)
 
-본 문서는 2024년 10월 23일 ~ 10월 30일 주간 (WEEK08) 동안 FutureEngine에 추가된 주요 기능 및 개선사항을 기술합니다.
+본 문서는 2025년 10월 23일 ~ 10월 30일 주간 (WEEK08) 동안 FutureEngine에 추가된 주요 기능 및 개선사항을 기술합니다.
 
 **주간 주제**: Shadow Mapping & Multiple Light Sources
 
@@ -12,7 +12,7 @@
 
 ### 1. Shadow Mapping System (PSM - Perspective Shadow Mapping)
 
-**구현 날짜**: 2024.10.23 ~ 10.30
+**구현 날짜**: 2025.10.23 ~ 10.30
 **핵심 기술**: Light Perspective Rendering, Depth Map, Bias Handling
 
 #### 개요
@@ -196,7 +196,7 @@ return float4(FinalLighting, 1.0f);
 
 ### 2. PCF (Percentage Closer Filtering)
 
-**구현 날짜**: 2024.10.25
+**구현 날짜**: 2025.10.25
 **목적**: Shadow edge의 계단 현상(aliasing) 완화
 
 #### 원리
@@ -246,7 +246,7 @@ float ShadowFactor = ShadowMap.SampleCmp(ShadowSampler, UV, PixelDepth - Bias); 
 
 ### 3. VSM (Variance Shadow Map)
 
-**구현 날짜**: 2024.10.26
+**구현 날짜**: 2025.10.26
 **목적**: PCF보다 빠른 필터링, 부드러운 그림자
 
 #### 원리
@@ -298,7 +298,7 @@ float VSM_ShadowFactor(Texture2D VSMTexture, float2 UV, float PixelDepth)
 
 ### 4. Shadow Atlas
 
-**구현 날짜**: 2024.10.27
+**구현 날짜**: 2025.10.27
 **목적**: 여러 광원의 Shadow Map을 단일 Texture에 효율적으로 배치하여 리소스 사용량 감소
 
 #### 아키텍처
@@ -361,7 +361,7 @@ float2 AtlasUV = AtlasOffset + LocalUV * AtlasScale;
 
 ### 5. Editor UI & Debugging Tools
 
-**구현 날짜**: 2024.10.28 ~ 10.30
+**구현 날짜**: 2025.10.28 ~ 10.30
 
 #### Light Property Panel Enhancements
 ```cpp
@@ -428,7 +428,7 @@ stat gpu
 
 ### 6. Pilot Mode & UI Enhancements
 
-**구현 날짜**: 2024.10.30
+**구현 날짜**: 2025.10.30
 **PR**: #13 (feature/viewport-actor_view_override)
 
 에디터 카메라가 선택된 Actor의 Transform을 실시간으로 따라가는 Pilot Mode 기능과 관련 UI 개선사항이 추가되었습니다. `Alt + G` 단축키 또는 UI 버튼으로 토글 가능하며, ViewType 드롭다운에 조종 중인 Actor 이름 표시 및 Eject 버튼(△ 아이콘)이 추가되었습니다.
@@ -442,7 +442,7 @@ stat gpu
 
 ### 7. Selection Outline System
 
-**구현 날짜**: 2024.10.30
+**구현 날짜**: 2025.10.30
 
 Stencil Buffer 기반 Two-Pass 렌더링으로 선택된 Actor 주변에 Unreal Engine 스타일 주황색 외곽선을 렌더링하는 시스템입니다.
 
@@ -453,7 +453,7 @@ Stencil Buffer 기반 Two-Pass 렌더링으로 선택된 Actor 주변에 Unreal 
 
 ### 8. Camera & Utility Improvements
 
-**구현 날짜**: 2024.10.30
+**구현 날짜**: 2025.10.30
 
 - **Camera Movement**: Q/E 키를 camera-local space → world-space Z-axis 이동으로 변경 (Unreal Engine과 동일)
 - **Utility Functions**: `Lerp`, `Clamp` 템플릿 함수를 `Global/Function.h`로 이동 (프로젝트 전역 사용)
@@ -502,7 +502,7 @@ Stencil Buffer 기반 Two-Pass 렌더링으로 선택된 Actor 주변에 Unreal 
 
 ## 👥 Contributors
 
-**개발 기간 (WEEK08)**: 2024.10.23 ~ 2024.10.30
+**개발 기간 (WEEK08)**: 2025.10.23 ~ 2025.10.30
 **주제**: Shadow Mapping & Multiple Light Sources
 
 ---
