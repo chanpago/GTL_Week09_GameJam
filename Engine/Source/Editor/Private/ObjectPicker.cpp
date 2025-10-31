@@ -219,16 +219,46 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 	{
 		EGizmoDirection Dirs[3] = { EGizmoDirection::Forward, EGizmoDirection::Right, EGizmoDirection::Up };
 
+		// 오쏘 뷰 World 모드: 카메라 방향에 따라 피킹할 축 결정
+		const bool bIsOrtho = (InActiveCamera->GetCameraType() == ECameraType::ECT_Orthographic);
+		const bool bIsWorld = Gizmo.IsWorldMode();
+		int OrthoAxisIndex = -1;
+
+		if (bIsOrtho && bIsWorld && !Gizmo.IsDragging())
+		{
+			const FVector CamForward = InActiveCamera->GetForward();
+			const float AbsX = abs(CamForward.X);
+			const float AbsY = abs(CamForward.Y);
+			const float AbsZ = abs(CamForward.Z);
+
+			if (AbsZ > AbsX && AbsZ > AbsY)
+			{
+				OrthoAxisIndex = 2;  // Z축만 피킹
+			}
+			else if (AbsY > AbsX && AbsY > AbsZ)
+			{
+				OrthoAxisIndex = 1;  // Y축만 피킹
+			}
+			else
+			{
+				OrthoAxisIndex = 0;  // X축만 피킹
+			}
+		}
+
 		for (int a = 0; a < 3; a++)
 		{
+			// 오쏘 뷰 World 모드: 해당 축만 피킹
+			if (OrthoAxisIndex != -1 && a != OrthoAxisIndex)
+			{
+				continue;
+			}
+
 			if (IsRayCollideWithPlane(WorldRay, GizmoLocation, GizmoAxises[a], CollisionPoint))
 			{
 				FVector RadiusVector = CollisionPoint - GizmoLocation;
 				if (Gizmo.IsInRadius(RadiusVector.Length()))
 				{
-					// 오쏘 뷰 + World 모드: Full Ring 피킹
-					const bool bIsOrtho = (InActiveCamera->GetCameraType() == ECameraType::ECT_Orthographic);
-					const bool bIsWorld = Gizmo.IsWorldMode();
+					// 오쏘 뷰 World 모드: Full Ring 피킹
 					const bool bShouldCheckQuarterRingAngle = !bIsOrtho || !bIsWorld;
 
 					// Quarter ring 각도 범위 체크
@@ -244,12 +274,39 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 						}
 						Projected = Projected * (1.0f / ProjLen);
 
-						// Quarter ring 시작/끝 방향 즉시 계산 (언리얼 방식 - 뷰포트별)
-						FVector StartDir, EndDir;
-						const FVector GizmoLocation = Gizmo.GetGizmoLocation();
-						FGizmoMath::CalculateQuarterRingDirections(InActiveCamera, Dirs[a], GizmoLocation, StartDir, EndDir);
-						StartDir.Normalize();
-						EndDir.Normalize();
+						// BaseAxis 계산
+						FVector BaseAxis0, BaseAxis1;
+						if (a == 0)
+						{
+							BaseAxis0 = FVector(0, 0, 1);  // Z
+							BaseAxis1 = FVector(0, 1, 0);  // Y
+						}
+						else if (a == 1)
+						{
+							BaseAxis0 = FVector(1, 0, 0);  // X
+							BaseAxis1 = FVector(0, 0, 1);  // Z
+						}
+						else
+						{
+							BaseAxis0 = FVector(1, 0, 0);  // X
+							BaseAxis1 = FVector(0, 1, 0);  // Y
+						}
+
+						// Local 모드면 회전 적용
+						if (!Gizmo.IsWorldMode())
+						{
+							FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+							BaseAxis0 = q.RotateVector(BaseAxis0);
+							BaseAxis1 = q.RotateVector(BaseAxis1);
+						}
+
+						// 플립 판정
+						const FVector CameraLoc = InActiveCamera->GetLocation();
+						const FVector DirectionToWidget = (GizmoLocation - CameraLoc).GetNormalized();
+						const bool bMirrorAxis0 = (BaseAxis0.Dot(DirectionToWidget) <= 0.0f);
+						const bool bMirrorAxis1 = (BaseAxis1.Dot(DirectionToWidget) <= 0.0f);
+						const FVector StartDir = bMirrorAxis0 ? BaseAxis0 : -BaseAxis0;
+						const FVector EndDir = bMirrorAxis1 ? BaseAxis1 : -BaseAxis1;
 
 						// 충돌점이 StartDir와 EndDir 사이에 있는지 확인
 						float DotStart = Projected.Dot(StartDir);

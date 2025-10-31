@@ -183,14 +183,22 @@ struct FVector
 	[[nodiscard]] static FVector UnitY() { return YAxisVector(); }
 	[[nodiscard]] static FVector UnitZ() { return ZAxisVector(); }
 };
+
 inline float Dot(const FVector& A, const FVector& B)
 {
 	return A.Dot(B);
 }
+
 inline FVector Cross(const FVector& A, const FVector& B)
 {
 	return A.Cross(B);
 }
+
+inline FVector operator*(float Scalar, const FVector& V)
+{
+	return V * Scalar;
+}
+
 FArchive& operator<<(FArchive& Ar, FVector& Vector);
 
 struct FVector2
@@ -222,6 +230,8 @@ struct FVector2
 	 * @brief 두 벡터를 뺀 새로운 벡터를 반환하는 함수
 	 */
 	FVector2 operator-(const FVector2& InOther) const;
+
+	FVector2 operator-() const;
 
 	/**
 	 * @brief 자신의 벡터에서 배율을 곱한 백터를 반환하는 함수

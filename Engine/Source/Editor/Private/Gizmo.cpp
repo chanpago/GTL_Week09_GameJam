@@ -182,37 +182,42 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, UCa
 		DisplayAngleRadians = std::round(GetCurrentRotationAngle() / SnapAngleRadians) * SnapAngleRadians;
 	}
 
-	// 렌더링과 동일하게 모든 축을 YZ 평면 기준으로 계산 후 회전 변환 적용
-	// GenerateCircleLineMesh(Z, Y)는 Z에서 시작하여 Z x Y = X축 주위로 회전
-	const FVector BaseAxis0 = FVector(0, 0, 1);  // Z (시작점)
-	const FVector BaseAxis1 = FVector(0, 1, 0);  // Y
-
-	// 각 축을 해당 평면으로 회전시키는 변환 (RenderGizmo의 AxisRots와 동일)
-	FQuaternion AxisRotation;
+	// 각 축마다 다른 BaseAxis 사용
+	FVector BaseAxis0, BaseAxis1;
 	switch (GizmoDirection)
 	{
-	case EGizmoDirection::Forward:  // X축: YZ 평면 그대로
-		AxisRotation = FQuaternion::Identity();
+	case EGizmoDirection::Forward:  // X축: Z→Y
+		BaseAxis0 = FVector(0, 0, 1);
+		BaseAxis1 = FVector(0, 1, 0);
 		break;
-	case EGizmoDirection::Right:    // Y축: Z축 중심 -90도 회전 (YZ -> XZ)
-		AxisRotation = FQuaternion::FromAxisAngle(FVector(0, 0, 1), FVector::GetDegreeToRadian(-90.0f));
+	case EGizmoDirection::Right:    // Y축: X→Z
+		BaseAxis0 = FVector(1, 0, 0);
+		BaseAxis1 = FVector(0, 0, 1);
 		break;
-	case EGizmoDirection::Up:       // Z축: Y축 중심 90도 회전 (YZ -> XY)
-		AxisRotation = FQuaternion::FromAxisAngle(FVector(0, 1, 0), FVector::GetDegreeToRadian(90.0f));
+	case EGizmoDirection::Up:       // Z축: X→Y
+		BaseAxis0 = FVector(1, 0, 0);
+		BaseAxis1 = FVector(0, 1, 0);
 		break;
 	default:
 		return;
 	}
 
-	// Local 모드면 컴포넌트 회전 적용
-	FQuaternion TotalRotation = AxisRotation;
+	// Local 모드면 컴포넌트 회전만 적용
+	FQuaternion TotalRotation = FQuaternion::Identity();
 	if (!IsWorldMode())
 	{
-		TotalRotation = AxisRotation * StartRotQuat;
+		TotalRotation = StartRotQuat;
 	}
 
-	// YZ 평면에서 각도 위치의 방향 계산 (Z에서 시작)
-	const FVector LocalDirection = BaseAxis0 * cosf(DisplayAngleRadians) + BaseAxis1 * sinf(DisplayAngleRadians);
+	// Z축은 각도 반전 (언리얼 표준)
+	float PositionAngleRadians = DisplayAngleRadians;
+	if (GizmoDirection == EGizmoDirection::Up)
+	{
+		PositionAngleRadians = -DisplayAngleRadians;
+	}
+
+	// 평면에서 각도 위치의 방향 계산
+	const FVector LocalDirection = BaseAxis0 * cosf(PositionAngleRadians) + BaseAxis1 * sinf(PositionAngleRadians);
 
 	// 월드 공간으로 변환
 	const FVector AngleDirection = TotalRotation.RotateVector(LocalDirection);
@@ -266,11 +271,10 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, UCa
 	const float TextY = PointScreenPos.Y + DirectionToPoint.Y * TextOffset;
 
 	// 텍스트 포맷 (UI와 일치하도록 각도 표시)
-	// 회전 입력 계산과 부호 일치시키기
 	float DisplayAngleDegrees = FVector::GetRadianToDegree(DisplayAngleRadians);
 
-	// X, Y축은 Editor.cpp의 Axis0/Axis1 정의와 부호가 반대이므로 보정
-	if (GizmoDirection == EGizmoDirection::Forward || GizmoDirection == EGizmoDirection::Right)
+	// Z축만 각도 부호 반전
+	if (GizmoDirection == EGizmoDirection::Up)
 	{
 		DisplayAngleDegrees = -DisplayAngleDegrees;
 	}

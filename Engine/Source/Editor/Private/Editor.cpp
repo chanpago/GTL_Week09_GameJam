@@ -767,16 +767,31 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 		if (InActiveCamera->GetCameraType() == ECameraType::ECT_Orthographic)
 		{
 			// 직교 뷰: 회전 평면을 이루는 두 축의 끝점을 스크린에 투영
-			const FVector Axis0 = Gizmo.GetGizmoDirection() == EGizmoDirection::Forward ? FVector(0, 0, 1) :
-			                      Gizmo.GetGizmoDirection() == EGizmoDirection::Right ? FVector(0, 0, 1) :
-			                      FVector(1, 0, 0);
-			const FVector Axis1 = Gizmo.GetGizmoDirection() == EGizmoDirection::Forward ? FVector(0, 1, 0) :
-			                      Gizmo.GetGizmoDirection() == EGizmoDirection::Right ? FVector(1, 0, 0) :
-			                      FVector(0, 1, 0);
+			// 각 축마다 다른 BaseAxis 사용
+			FVector Axis0, Axis1;
+			switch (Gizmo.GetGizmoDirection())
+			{
+			case EGizmoDirection::Forward:  // X축: Z→Y
+				Axis0 = FVector(0, 0, 1);
+				Axis1 = FVector(0, 1, 0);
+				break;
+			case EGizmoDirection::Right:    // Y축: X→Z
+				Axis0 = FVector(1, 0, 0);
+				Axis1 = FVector(0, 0, 1);
+				break;
+			case EGizmoDirection::Up:       // Z축: X→Y
+				Axis0 = FVector(1, 0, 0);
+				Axis1 = FVector(0, 1, 0);
+				break;
+			default:
+				Axis0 = FVector(0, 0, 1);
+				Axis1 = FVector(0, 1, 0);
+				break;
+			}
 
-			const FQuaternion RotQuat = Gizmo.IsWorldMode() ? FQuaternion::Identity() : Gizmo.GetDragStartActorRotationQuat();
-			const FVector RotatedAxis0 = RotQuat.RotateVector(Axis0);
-			const FVector RotatedAxis1 = RotQuat.RotateVector(Axis1);
+			const FQuaternion ComponentRot = Gizmo.IsWorldMode() ? FQuaternion::Identity() : Gizmo.GetDragStartActorRotationQuat();
+			const FVector RotatedAxis0 = ComponentRot.RotateVector(Axis0);
+			const FVector RotatedAxis1 = ComponentRot.RotateVector(Axis1);
 
 			FVector4 Axis0World4 = FVector4(GizmoLocation + RotatedAxis0 * 64.0f, 1.0f);
 			FVector4 Axis1World4 = FVector4(GizmoLocation + RotatedAxis1 * 64.0f, 1.0f);
@@ -805,13 +820,14 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 			}
 
 			FVector2 AxisScreenDir = (Axis1ScreenPos - Axis0ScreenPos).GetNormalized();
-			TangentDir = FVector2(-AxisScreenDir.Y, AxisScreenDir.X);
+			TangentDir = AxisScreenDir;
 		}
 		else
 		{
 			// 원근 뷰: 축 방향을 View 변환하여 스크린 방향 계산
-			FVector4 AxisDirView = FVector4(WorldRotationAxis, 0.0f) * CamConst.View;
-			FVector2 AxisScreenDir(AxisDirView.X, -AxisDirView.Y);
+			// 회전축에 수직인 방향을 tangent로 사용
+			FVector4 RotAxisView = FVector4(WorldRotationAxis, 0.0f) * CamConst.View;
+			FVector2 AxisScreenDir(RotAxisView.X, -RotAxisView.Y);
 			AxisScreenDir = AxisScreenDir.GetNormalized();
 			TangentDir = FVector2(-AxisScreenDir.Y, AxisScreenDir.X);
 		}
@@ -863,14 +879,15 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 			FinalAngle = std::round(Gizmo.GetCurrentRotationAngle() / SnapAngleRadians) * SnapAngleRadians;
 		}
 
+		// 기즈모 드래그 방향과 회전 방향을 일치시키기 위해 부호 반전
 		const FQuaternion DeltaRotQuat = FQuaternion::FromAxisAngle(LocalGizmoAxis, FinalAngle);
 		if (Gizmo.IsWorldMode())
 		{
-			return StartRotQuat * DeltaRotQuat;
+			return DeltaRotQuat * StartRotQuat;
 		}
 		else
 		{
-			return DeltaRotQuat * StartRotQuat;
+			return StartRotQuat * DeltaRotQuat;
 		}
 	}
 

@@ -230,7 +230,7 @@ private:
 	void RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion& BaseRot, float RenderScale);
 	void RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& BaseRot, float RenderScale);
 	void RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion& AxisRotation,
-		const FQuaternion& BaseRot, const FVector4& AxisColor);
+	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, UCamera* InCamera);
 	void RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuaternion& BaseRot,
-		int32 AxisIndex, EGizmoDirection Direction, UCamera* InCamera);
+	EGizmoDirection Direction, UCamera* InCamera, const FVector& BaseAxis0, const FVector& BaseAxis1);
 };

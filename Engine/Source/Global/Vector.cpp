@@ -307,6 +307,11 @@ FVector2 FVector2::operator-(const FVector2& InOther) const
 	return { X - InOther.X, Y - InOther.Y };
 }
 
+FVector2 FVector2::operator-() const
+{
+	return {-X, -Y};
+}
+
 /**
  * @brief 자신의 벡터에서 배율을 곱한 백터를 반환하는 함수
  */

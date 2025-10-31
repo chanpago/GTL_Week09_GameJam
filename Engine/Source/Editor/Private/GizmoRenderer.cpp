@@ -117,15 +117,15 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 
 	// 기즈모 기준 회전 결정 (World/Local 모드)
 	FQuaternion BaseRot;
-	if (GizmoMode == EGizmoMode::Rotate && !bIsWorld && bIsDragging)
-	{
-		// 로컬 회전 모드 드래그 중: 드래그 시작 시점의 회전 고정
-		BaseRot = DragStartActorRotationQuat;
-	}
-	else if (GizmoMode == EGizmoMode::Scale)
+	if (GizmoMode == EGizmoMode::Scale)
 	{
 		// 스케일 모드: 항상 로컬 좌표
 		BaseRot = TargetComponent->GetWorldRotationAsQuaternion();
+	}
+	else if (GizmoMode == EGizmoMode::Rotate && IsDragging())
+	{
+		// 회전 모드 드래그 중: 드래그 시작 시 회전으로 고정 (기즈모가 움직이지 않도록)
+		BaseRot = bIsWorld ? FQuaternion::Identity() : GetDragStartActorRotationQuat();
 	}
 	else
 	{
@@ -140,8 +140,20 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 	// 각 링을 해당 평면으로 회전시키는 변환 (드래그 시 Ring 사용)
 	FQuaternion AxisRots[3] = {
 		FQuaternion::Identity(),  // X링: YZ 평면
-		FQuaternion::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(-90.0f)),  // Y링: XZ 평면
-		FQuaternion::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(90.0f))  // Z링: XY 평면 - Right(Y)축 기준 90도로 X→Z
+		FQuaternion::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(90.0f)),  // Y링: XZ 평면
+		FQuaternion::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(-90.0f))  // Z링: XY 평면
+	};
+
+	// 각 축의 BaseAxis 정의
+	const FVector BaseAxis0[3] = {
+		FVector(0, 0, 1),  // X축: Z
+		FVector(1, 0, 0),  // Y축: X
+		FVector(1, 0, 0)   // Z축: X
+	};
+	const FVector BaseAxis1[3] = {
+		FVector(0, 1, 0),  // X축: Y
+		FVector(0, 0, 1),  // Y축: Z
+		FVector(0, 1, 0)   // Z축: Y
 	};
 
 	// 오쏘 뷰에서 World 모드일 때 어떤 축을 표시할지 결정
@@ -209,16 +221,17 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 	{
 		if (bIsRotateMode && bIsDragging && GizmoDirection == EGizmoDirection::Forward)
 		{
-			RenderRotationCircles(P, AxisRots[0], BaseRot, GizmoColor[0]);
+			// BaseAxis가 이미 평면을 정의하므로 AxisRotation 불필요 (Identity 사용)
+			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[0], BaseAxis0[0], BaseAxis1[0], InCamera);
 		}
 		else if (bIsRotateMode)
 		{
-			RenderRotationQuarterRing(P, BaseRot, 0, EGizmoDirection::Forward, InCamera);
+			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Forward, InCamera, BaseAxis0[0], BaseAxis1[0]);
 		}
 		else
 		{
 			// Translate/Scale 모드
-			P.Rotation = AxisRots[0] * BaseRot;
+			P.Rotation = BaseRot * AxisRots[0];
 			P.Color = ColorFor(EGizmoDirection::Forward);
 			Renderer.RenderEditorPrimitive(P, RenderState);
 		}
@@ -229,16 +242,17 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 	{
 		if (bIsRotateMode && bIsDragging && GizmoDirection == EGizmoDirection::Right)
 		{
-			RenderRotationCircles(P, AxisRots[1], BaseRot, GizmoColor[1]);
+			// BaseAxis가 이미 평면을 정의하므로 AxisRotation 불필요 (Identity 사용)
+			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[1], BaseAxis0[1], BaseAxis1[1], InCamera);
 		}
 		else if (bIsRotateMode)
 		{
-			RenderRotationQuarterRing(P, BaseRot, 1, EGizmoDirection::Right, InCamera);
+			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Right, InCamera, BaseAxis0[1], BaseAxis1[1]);
 		}
 		else
 		{
 			// Translate/Scale 모드
-			P.Rotation = AxisRots[1] * BaseRot;
+			P.Rotation = BaseRot * AxisRots[1];
 			P.Color = ColorFor(EGizmoDirection::Right);
 			Renderer.RenderEditorPrimitive(P, RenderState);
 		}
@@ -249,16 +263,17 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 	{
 		if (bIsRotateMode && bIsDragging && GizmoDirection == EGizmoDirection::Up)
 		{
-			RenderRotationCircles(P, AxisRots[2], BaseRot, GizmoColor[2]);
+			// BaseAxis가 이미 평면을 정의하므로 AxisRotation 불필요 (Identity 사용)
+			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[2], BaseAxis0[2], BaseAxis1[2], InCamera);
 		}
 		else if (bIsRotateMode)
 		{
-			RenderRotationQuarterRing(P, BaseRot, 2, EGizmoDirection::Up, InCamera);
+			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Up, InCamera, BaseAxis0[2], BaseAxis1[2]);
 		}
 		else
 		{
 			// Translate/Scale 모드
-			P.Rotation = AxisRots[2] * BaseRot;
+			P.Rotation = BaseRot * AxisRots[2];
 			P.Color = ColorFor(EGizmoDirection::Up);
 			Renderer.RenderEditorPrimitive(P, RenderState);
 		}
@@ -390,13 +405,6 @@ void UGizmo::RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion&
 	{
 		FVector T1 = PlaneInfo.Tangent1;
 		FVector T2 = PlaneInfo.Tangent2;
-
-		if (!bIsWorld)
-		{
-			T1 = BaseRot.RotateVector(T1);
-			T2 = BaseRot.RotateVector(T2);
-		}
-
 		FVector PlaneNormal = Cross(T1, T2).GetNormalized();
 
 		EGizmoDirection Seg1Color, Seg2Color;
@@ -465,7 +473,7 @@ void UGizmo::RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion&
 				Indices.push_back(Next * 2 + 1);
 			}
 
-			Batch.AddMesh(vertices, Indices, Seg1Color_Final, P.Location);
+			Batch.AddMesh(vertices, Indices, Seg1Color_Final, P.Location, BaseRot);
 		}
 
 		// 선분 2 메쉬 생성
@@ -499,7 +507,7 @@ void UGizmo::RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion&
 				Indices.push_back(Next * 2 + 1);
 			}
 
-			Batch.AddMesh(vertices, Indices, Seg2Color_Final, P.Location);
+			Batch.AddMesh(vertices, Indices, Seg2Color_Final, P.Location, BaseRot);
 		}
 	}
 
@@ -536,8 +544,9 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 
 	for (const FPlaneInfo& PlaneInfo : Planes)
 	{
-		FVector T1 = BaseRot.RotateVector(PlaneInfo.Tangent1);
-		FVector T2 = BaseRot.RotateVector(PlaneInfo.Tangent2);
+		// 로컬 공간에서 메시 생성
+		FVector T1 = PlaneInfo.Tangent1;
+		FVector T2 = PlaneInfo.Tangent2;
 
 		FVector Point1 = T1 * MidPoint;
 		FVector Point2 = T2 * MidPoint;
@@ -612,7 +621,7 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 				Indices.push_back(Next * 2 + 1);
 			}
 
-			Batch.AddMesh(vertices, Indices, Seg1Color_Final, P.Location);
+			Batch.AddMesh(vertices, Indices, Seg1Color_Final, P.Location, BaseRot);
 		}
 
 		// 선분 2 메쉬 생성
@@ -646,7 +655,7 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 				Indices.push_back(Next * 2 + 1);
 			}
 
-			Batch.AddMesh(vertices, Indices, Seg2Color_Final, P.Location);
+			Batch.AddMesh(vertices, Indices, Seg2Color_Final, P.Location, BaseRot);
 		}
 	}
 
@@ -655,16 +664,42 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 }
 
 void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion& AxisRotation,
-	const FQuaternion& BaseRot, const FVector4& AxisColor)
+	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, UCamera* InCamera)
 {
 	URenderer& Renderer = URenderer::GetInstance();
+	const bool bIsOrtho = (InCamera->GetCameraType() == ECameraType::ECT_Orthographic);
+	const bool bSkipFlip = bIsOrtho;  // ortho 뷰에서는 플립 스킵 (각도 오버레이와 동일 평면)
+
+	FVector RenderWorldAxis0, RenderWorldAxis1;
+
+	if (bSkipFlip)
+	{
+		// Ortho (World + Local): 정확한 로컬 평면 (플립 없음, Arc/각도 오버레이와 동일)
+		RenderWorldAxis0 = BaseRot.RotateVector(BaseAxis0);
+		RenderWorldAxis1 = BaseRot.RotateVector(BaseAxis1);
+	}
+	else
+	{
+		// Perspective: 플립 판정 적용 (카메라에서 잘 보이도록)
+		const FVector GizmoLoc = P.Location;
+		const FVector CameraLoc = InCamera->GetLocation();
+		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
+
+		FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0);
+		FVector WorldAxis1 = BaseRot.RotateVector(BaseAxis1);
+
+		const bool bMirrorAxis0 = (WorldAxis0.Dot(DirectionToWidget) <= 0.0f);
+		const bool bMirrorAxis1 = (WorldAxis1.Dot(DirectionToWidget) <= 0.0f);
+		RenderWorldAxis0 = bMirrorAxis0 ? WorldAxis0 : -WorldAxis0;
+		RenderWorldAxis1 = bMirrorAxis1 ? WorldAxis1 : -WorldAxis1;
+	}
 
 	// Inner circle: 두꺼운 축 색상 선
 	TArray<FNormalVertex> innerVertices, outerVertices;
 	TArray<uint32> innerIndices, outerIndices;
 
 	const float InnerLineThickness = RotateCollisionConfig.Thickness * 2.0f;
-	FGizmoGeometry::GenerateCircleLineMesh(FVector(0, 0, 1), FVector(0, 1, 0),
+	FGizmoGeometry::GenerateCircleLineMesh(RenderWorldAxis0, RenderWorldAxis1,
 		RotateCollisionConfig.InnerRadius, InnerLineThickness, innerVertices, innerIndices);
 
 	if (!innerIndices.empty())
@@ -678,7 +713,7 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 		InnerPrim.NumVertices = static_cast<uint32>(innerVertices.size());
 		InnerPrim.IndexBuffer = innerIB;
 		InnerPrim.NumIndices = static_cast<uint32>(innerIndices.size());
-		InnerPrim.Rotation = AxisRotation * BaseRot;
+		InnerPrim.Rotation = FQuaternion::Identity(); // 이미 월드 공간
 		InnerPrim.Color = AxisColor;
 		Renderer.RenderEditorPrimitive(InnerPrim, RenderState);
 
@@ -688,7 +723,7 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 
 	// Outer circle: 얇은 노란색 선
 	const float OuterLineThickness = RotateCollisionConfig.Thickness * 1.0f;
-	FGizmoGeometry::GenerateCircleLineMesh(FVector(0, 0, 1), FVector(0, 1, 0),
+	FGizmoGeometry::GenerateCircleLineMesh(RenderWorldAxis0, RenderWorldAxis1,
 		RotateCollisionConfig.OuterRadius, OuterLineThickness, outerVertices, outerIndices);
 
 	if (!outerIndices.empty())
@@ -702,7 +737,7 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 		OuterPrim.NumVertices = static_cast<uint32>(outerVertices.size());
 		OuterPrim.IndexBuffer = outerIB;
 		OuterPrim.NumIndices = static_cast<uint32>(outerIndices.size());
-		OuterPrim.Rotation = AxisRotation * BaseRot;
+		OuterPrim.Rotation = FQuaternion::Identity(); // 이미 월드 공간
 		OuterPrim.Color = FVector4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색
 		Renderer.RenderEditorPrimitive(OuterPrim, RenderState);
 
@@ -716,7 +751,7 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 		TArray<uint32> tickIndices;
 
 		const float SnapAngle = UViewportManager::GetInstance().GetRotationSnapAngle();
-		FGizmoGeometry::GenerateAngleTickMarks(FVector(0, 0, 1), FVector(0, 1, 0),
+		FGizmoGeometry::GenerateAngleTickMarks(RenderWorldAxis0, RenderWorldAxis1,
 			RotateCollisionConfig.InnerRadius, RotateCollisionConfig.OuterRadius,
 			RotateCollisionConfig.Thickness, SnapAngle, tickVertices, tickIndices);
 
@@ -731,7 +766,7 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 			TickPrim.NumVertices = static_cast<uint32>(tickVertices.size());
 			TickPrim.IndexBuffer = tickIB;
 			TickPrim.NumIndices = static_cast<uint32>(tickIndices.size());
-			TickPrim.Rotation = AxisRotation * BaseRot;
+			TickPrim.Rotation = FQuaternion::Identity(); // 이미 월드 공간
 			TickPrim.Color = FVector4(1.0f, 1.0f, 0.0f, 1.0f);
 			Renderer.RenderEditorPrimitive(TickPrim, RenderState);
 
@@ -740,13 +775,22 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 		}
 	}
 
-	// 회전 각도 Arc 렌더링 (스냅이 켜져있으면 스냅된 각도, 아니면 현재 각도)
+	// 회전 각도 Arc 렌더링 (Inner/Outer Circle과 동일 평면)
 	float DisplayAngle = CurrentRotationAngle;
 	if (UViewportManager::GetInstance().IsRotationSnapEnabled())
 	{
 		const float SnapAngle = UViewportManager::GetInstance().GetRotationSnapAngle();
 		DisplayAngle = GetSnappedRotationAngle(SnapAngle);
 	}
+
+	// Z축은 각도 반전 (언리얼 표준) - 월드 공간 BaseAxis로 판정
+	const bool bIsZAxis = (BaseAxis0.X > 0.9f && BaseAxis0.Y < 0.1f && BaseAxis0.Z < 0.1f &&
+	                       BaseAxis1.X < 0.1f && BaseAxis1.Y > 0.9f && BaseAxis1.Z < 0.1f);
+	if (bIsZAxis)
+	{
+		DisplayAngle = -DisplayAngle;
+	}
+
 	if (std::abs(DisplayAngle) > 0.001f)
 	{
 		TArray<FNormalVertex> arcVertices;
@@ -756,7 +800,8 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 		const float ArcInnerRadius = RotateCollisionConfig.InnerRadius * 0.98f;
 		const float ArcOuterRadius = RotateCollisionConfig.OuterRadius * 1.02f;
 
-		FGizmoGeometry::GenerateRotationArcMesh(FVector(0, 0, 1), FVector(0, 1, 0),
+		// Inner/Outer Circle과 동일 평면: RenderWorldAxis 사용 (이미 회전된 월드 공간)
+		FGizmoGeometry::GenerateRotationArcMesh(RenderWorldAxis0, RenderWorldAxis1,
 			ArcInnerRadius, ArcOuterRadius, RotateCollisionConfig.Thickness,
 			DisplayAngle, FVector(0,0,0), arcVertices, arcIndices);
 
@@ -771,7 +816,7 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 			ArcPrim.NumVertices = static_cast<uint32>(arcVertices.size());
 			ArcPrim.IndexBuffer = arcIB;
 			ArcPrim.NumIndices = static_cast<uint32>(arcIndices.size());
-			ArcPrim.Rotation = AxisRotation * BaseRot;
+			ArcPrim.Rotation = FQuaternion::Identity(); // 이미 월드 공간
 			ArcPrim.Color = FVector4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색
 			Renderer.RenderEditorPrimitive(ArcPrim, RenderState);
 
@@ -782,67 +827,69 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 }
 
 void UGizmo::RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuaternion& BaseRot,
-	int32 AxisIndex, EGizmoDirection Direction, UCamera* InCamera)
+	EGizmoDirection Direction, UCamera* InCamera, const FVector& BaseAxis0, const FVector& BaseAxis1)
 {
 	URenderer& Renderer = URenderer::GetInstance();
 	UAssetManager& AssetManager = UAssetManager::GetInstance();
 	const bool bIsOrtho = InCamera->GetCameraType() == ECameraType::ECT_Orthographic;
 
-	// Gizmo axis definitions
-	const FVector LocalAxis0[3] = {
-		FVector(0.0f, 0.0f, 1.0f),  // X ring: Z axis
-		FVector(1.0f, 0.0f, 0.0f),  // Y ring: X axis
-		FVector(1.0f, 0.0f, 0.0f)   // Z ring: X axis
-	};
-	const FVector LocalAxis1[3] = {
-		FVector(0.0f, 1.0f, 0.0f),  // X ring: Y axis
-		FVector(0.0f, 0.0f, 1.0f),  // Y ring: Z axis
-		FVector(0.0f, 1.0f, 0.0f)   // Z ring: Y axis
-	};
-
-	// 각 링을 해당 평면으로 회전시키는 변환
-	FQuaternion AxisRots[3] = {
-		FQuaternion::Identity(),  // X링: YZ 평면
-		FQuaternion::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(-90.0f)),  // Y링: XZ 평면
-		FQuaternion::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(90.0f))  // Z링: XY 평면
-	};
-
 	if (bIsOrtho && bIsWorld)
 	{
-		// 오쏘 뷰 + World 모드: Full Ring
-		FEditorPrimitive RingPrim = P;
-		RingPrim.VertexBuffer = AssetManager.GetVertexbuffer(EPrimitiveType::Ring);
-		RingPrim.NumVertices = AssetManager.GetNumVertices(EPrimitiveType::Ring);
-		RingPrim.IndexBuffer = nullptr;
-		RingPrim.NumIndices = 0;
-		RingPrim.Rotation = AxisRots[AxisIndex] * BaseRot;
-		RingPrim.Color = ColorFor(Direction);
-		Renderer.RenderEditorPrimitive(RingPrim, RenderState);
+		// 오쏘 뷰 + World 모드: Full Ring (피킹 영역과 동일한 InnerRadius~OuterRadius)
+		TArray<FNormalVertex> ringVertices;
+		TArray<uint32> ringIndices;
+
+		// 360도 Arc = Full Ring (InnerRadius~OuterRadius 사이를 채움)
+		FGizmoGeometry::GenerateRotationArcMesh(BaseAxis0, BaseAxis1,
+			RotateCollisionConfig.InnerRadius, RotateCollisionConfig.OuterRadius,
+			RotateCollisionConfig.Thickness, 2.0f * PI, FVector(0,0,0), ringVertices, ringIndices);
+
+		if (!ringIndices.empty())
+		{
+			ID3D11Buffer* ringVB = nullptr;
+			ID3D11Buffer* ringIB = nullptr;
+			FGizmoGeometry::CreateTempBuffers(ringVertices, ringIndices, &ringVB, &ringIB);
+
+			FEditorPrimitive RingPrim = P;
+			RingPrim.VertexBuffer = ringVB;
+			RingPrim.NumVertices = static_cast<uint32>(ringVertices.size());
+			RingPrim.IndexBuffer = ringIB;
+			RingPrim.NumIndices = static_cast<uint32>(ringIndices.size());
+			RingPrim.Rotation = BaseRot; // World 모드는 Identity
+			RingPrim.Color = ColorFor(Direction);
+			Renderer.RenderEditorPrimitive(RingPrim, RenderState);
+
+			ringVB->Release();
+			ringIB->Release();
+		}
 	}
 	else
 	{
 		// 퍼스펙티브 또는 오쏘 뷰 Local 모드: QuarterRing
 		const FVector GizmoLoc = P.Location;
-		const FQuaternion GizmoRot = bIsWorld ? FQuaternion::Identity() : TargetComponent->GetWorldRotationAsQuaternion();
 		const FVector CameraLoc = InCamera->GetLocation();
 		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
 
-		FVector Axis0 = bIsWorld ? FGizmoConstants::LocalAxis0[AxisIndex] : GizmoRot.RotateVector(FGizmoConstants::LocalAxis0[AxisIndex]);
-		FVector Axis1 = bIsWorld ? FGizmoConstants::LocalAxis1[AxisIndex] : GizmoRot.RotateVector(FGizmoConstants::LocalAxis1[AxisIndex]);
+		// 월드 좌표에서 축 계산
+		FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0);
+		FVector WorldAxis1 = BaseRot.RotateVector(BaseAxis1);
 
-		const bool bMirrorAxis0 = (Axis0.Dot(DirectionToWidget) <= 0.0f);
-		const bool bMirrorAxis1 = (Axis1.Dot(DirectionToWidget) <= 0.0f);
-		const FVector RenderAxis0 = bMirrorAxis0 ? Axis0 : -Axis0;
-		const FVector RenderAxis1 = bMirrorAxis1 ? Axis1 : -Axis1;
+		// 플립 판정 (언리얼 표준)
+		// InDirectionToWidget = 카메라 -> 위젯
+		// (Axis · InDirectionToWidget) <= 0 -> 축이 카메라 반대를 향함 -> Axis 그대로
+		// (Axis · InDirectionToWidget) > 0 -> 축이 카메라를 향함 -> -Axis
+		const bool bMirrorAxis0 = (WorldAxis0.Dot(DirectionToWidget) <= 0.0f);
+		const bool bMirrorAxis1 = (WorldAxis1.Dot(DirectionToWidget) <= 0.0f);
 
-		FVector LocalRenderAxis0 = bIsWorld ? RenderAxis0 : GizmoRot.Inverse().RotateVector(RenderAxis0);
-		FVector LocalRenderAxis1 = bIsWorld ? RenderAxis1 : GizmoRot.Inverse().RotateVector(RenderAxis1);
-		LocalRenderAxis0.Normalize();
-		LocalRenderAxis1.Normalize();
+		// 월드 공간에서 플립
+		const FVector RenderWorldAxis0 = bMirrorAxis0 ? WorldAxis0 : -WorldAxis0;
+		const FVector RenderWorldAxis1 = bMirrorAxis1 ? WorldAxis1 : -WorldAxis1;
 
 		TArray<FNormalVertex> vertices;
 		TArray<uint32> Indices;
-		FGizmoGeometry::GenerateQuarterRingMesh(LocalRenderAxis0, LocalRenderAxis1,
+
+		// 월드 공간 축으로 직접 메시 생성
+		FGizmoGeometry::GenerateQuarterRingMesh(RenderWorldAxis0, RenderWorldAxis1,
 			RotateCollisionConfig.InnerRadius, RotateCollisionConfig.OuterRadius, RotateCollisionConfig.Thickness,
 			vertices, Indices);
 
@@ -855,7 +902,7 @@ void UGizmo::RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuatern
 		QuarterPrim.NumVertices = static_cast<uint32>(vertices.size());
 		QuarterPrim.IndexBuffer = TempIB;
 		QuarterPrim.NumIndices = static_cast<uint32>(Indices.size());
-		QuarterPrim.Rotation = BaseRot;
+		QuarterPrim.Rotation = FQuaternion::Identity(); // 이미 월드 공간이므로 회전 불필요
 		QuarterPrim.Color = ColorFor(Direction);
 		Renderer.RenderEditorPrimitive(QuarterPrim, RenderState);
 
@@ -871,8 +918,18 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 		return;
 	}
 
-	// Scale uniformly in screen space
-	const FVector GizmoLocation = TargetComponent->GetWorldLocation();
+	// Scale uniformly in screen space (메인 렌더링과 동일한 Location 계산)
+	FVector GizmoLocation;
+	if (bUseFixedLocation)
+	{
+		// Pilot Mode: 고정 위치 사용
+		GizmoLocation = FixedLocation;
+	}
+	else
+	{
+		GizmoLocation = TargetComponent->GetWorldLocation();
+	}
+
 	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(InCamera, InViewport, GizmoLocation, 120.0f);
 
 	URenderer& Renderer = URenderer::GetInstance();
@@ -880,16 +937,12 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 
 	const int Mode = static_cast<int>(GizmoMode);
 	auto& P = Primitives[Mode];
-	P.Location = TargetComponent->GetWorldLocation();
+	P.Location = GizmoLocation;
 	P.Scale = FVector(RenderScale, RenderScale, RenderScale);
 
 	// Determine gizmo base rotation
 	FQuaternion BaseRot;
-	if (GizmoMode == EGizmoMode::Rotate && !bIsWorld && bIsDragging)
-	{
-		BaseRot = DragStartActorRotationQuat;
-	}
-	else if (GizmoMode == EGizmoMode::Scale)
+	if (GizmoMode == EGizmoMode::Scale)
 	{
 		BaseRot = TargetComponent->GetWorldRotationAsQuaternion();
 	}
@@ -903,17 +956,17 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 	FQuaternion AxisRots[3];
 	if (bIsRotateMode)
 	{
-		// Rotation mode
+		// Rotation mode: BaseAxis가 이미 평면을 정의하므로 AxisRotation 불필요
 		AxisRots[0] = FQuaternion::Identity();
-		AxisRots[1] = FQuaternion::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(-90.0f));
-		AxisRots[2] = FQuaternion::FromAxisAngle(FVector::ForwardVector(), FVector::GetDegreeToRadian(90.0f));
+		AxisRots[1] = FQuaternion::Identity();
+		AxisRots[2] = FQuaternion::Identity();
 	}
 	else
 	{
-		// Translation/Scale mode
+		// Translation / Scale mode
 		AxisRots[0] = FQuaternion::Identity();
-		AxisRots[1] = FQuaternion::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(-90.0f));
-		AxisRots[2] = FQuaternion::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(90.0f));
+		AxisRots[1] = FQuaternion::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(90.0f));  // Left-Handed
+		AxisRots[2] = FQuaternion::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(-90.0f));  // Left-Handed
 	}
 	const bool bIsOrtho = (InCamera->GetCameraType() == ECameraType::ECT_Orthographic);
 
@@ -970,15 +1023,38 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 	// Rotation mode requires dynamic mesh generation
 	if (bIsRotateMode)
 	{
-		// NOTE: ID 스왑은 의도된 설계, LocalAxis 배열이 회전 평면 기준이므로 bShowX는 YZ평면(Y축 회전)을 생성
-		// 따라서 물리적 위치와 ID를 매칭하려면 bShowX -> YAxisId, bShowY -> XAxisId 할당 필요
+		// BaseAxis 정의 (X축: Z->Y, Y축: X->Z, Z축: X->Y)
+		const FVector BaseAxis0[3] = {
+			FVector(0, 0, 1),  // X축: Z
+			FVector(1, 0, 0),  // Y축: X
+			FVector(1, 0, 0)   // Z축: X
+		};
+		const FVector BaseAxis1[3] = {
+			FVector(0, 1, 0),  // X축: Y
+			FVector(0, 0, 1),  // Y축: Z
+			FVector(0, 1, 0)   // Z축: Y
+		};
 
-		// X axis rendering
+		const FVector GizmoLoc = P.Location;
+		const FVector CameraLoc = InCamera->GetLocation();
+		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
+
+		// X axis rendering (YZ 평면)
 		if (bShowX)
 		{
+			// 월드 좌표에서 축 계산
+			FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0[0]);
+			FVector WorldAxis1 = BaseRot.RotateVector(BaseAxis1[0]);
+
+			// 플립 판정
+			const bool bMirrorAxis0 = (WorldAxis0.Dot(DirectionToWidget) <= 0.0f);
+			const bool bMirrorAxis1 = (WorldAxis1.Dot(DirectionToWidget) <= 0.0f);
+			const FVector RenderWorldAxis0 = bMirrorAxis0 ? WorldAxis0 : -WorldAxis0;
+			const FVector RenderWorldAxis1 = bMirrorAxis1 ? WorldAxis1 : -WorldAxis1;
+
 			TArray<FNormalVertex> vertices;
 			TArray<uint32> indices;
-			FGizmoGeometry::GenerateQuarterRingMesh(FVector(0, 0, 1), FVector(0, 1, 0),
+			FGizmoGeometry::GenerateQuarterRingMesh(RenderWorldAxis0, RenderWorldAxis1,
 				RotateCollisionConfig.InnerRadius, RotateCollisionConfig.OuterRadius,
 				RotateCollisionConfig.Thickness, vertices, indices);
 
@@ -992,35 +1068,7 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 				P.NumVertices = static_cast<uint32>(vertices.size());
 				P.IndexBuffer = ib;
 				P.NumIndices = static_cast<uint32>(indices.size());
-				P.Rotation = AxisRots[0] * BaseRot;
-				P.Color = YAxisId.GetColor();
-				Renderer.RenderEditorPrimitive(P, RenderState);
-
-				vb->Release();
-				ib->Release();
-			}
-		}
-
-		// Y axis rendering
-		if (bShowY)
-		{
-			TArray<FNormalVertex> vertices;
-			TArray<uint32> indices;
-			FGizmoGeometry::GenerateQuarterRingMesh(FVector(1, 0, 0), FVector(0, 0, 1),
-				RotateCollisionConfig.InnerRadius, RotateCollisionConfig.OuterRadius,
-				RotateCollisionConfig.Thickness, vertices, indices);
-
-			if (!indices.empty())
-			{
-				ID3D11Buffer* vb = nullptr;
-				ID3D11Buffer* ib = nullptr;
-				FGizmoGeometry::CreateTempBuffers(vertices, indices, &vb, &ib);
-
-				P.VertexBuffer = vb;
-				P.NumVertices = static_cast<uint32>(vertices.size());
-				P.IndexBuffer = ib;
-				P.NumIndices = static_cast<uint32>(indices.size());
-				P.Rotation = AxisRots[1] * BaseRot;
+				P.Rotation = FQuaternion::Identity();
 				P.Color = XAxisId.GetColor();
 				Renderer.RenderEditorPrimitive(P, RenderState);
 
@@ -1029,12 +1077,22 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 			}
 		}
 
-		// Z axis rendering
-		if (bShowZ)
+		// Y axis rendering (XZ 평면)
+		if (bShowY)
 		{
+			// 월드 좌표에서 축 계산
+			FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0[1]);
+			FVector WorldAxis1 = BaseRot.RotateVector(BaseAxis1[1]);
+
+			// 플립 판정
+			const bool bMirrorAxis0 = (WorldAxis0.Dot(DirectionToWidget) <= 0.0f);
+			const bool bMirrorAxis1 = (WorldAxis1.Dot(DirectionToWidget) <= 0.0f);
+			const FVector RenderWorldAxis0 = bMirrorAxis0 ? WorldAxis0 : -WorldAxis0;
+			const FVector RenderWorldAxis1 = bMirrorAxis1 ? WorldAxis1 : -WorldAxis1;
+
 			TArray<FNormalVertex> vertices;
 			TArray<uint32> indices;
-			FGizmoGeometry::GenerateQuarterRingMesh(FVector(1, 0, 0), FVector(0, 1, 0),
+			FGizmoGeometry::GenerateQuarterRingMesh(RenderWorldAxis0, RenderWorldAxis1,
 				RotateCollisionConfig.InnerRadius, RotateCollisionConfig.OuterRadius,
 				RotateCollisionConfig.Thickness, vertices, indices);
 
@@ -1048,7 +1106,45 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 				P.NumVertices = static_cast<uint32>(vertices.size());
 				P.IndexBuffer = ib;
 				P.NumIndices = static_cast<uint32>(indices.size());
-				P.Rotation = AxisRots[2] * BaseRot;
+				P.Rotation = FQuaternion::Identity();
+				P.Color = YAxisId.GetColor();
+				Renderer.RenderEditorPrimitive(P, RenderState);
+
+				vb->Release();
+				ib->Release();
+			}
+		}
+
+		// Z axis rendering (XY 평면)
+		if (bShowZ)
+		{
+			// 월드 좌표에서 축 계산
+			FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0[2]);
+			FVector WorldAxis1 = BaseRot.RotateVector(BaseAxis1[2]);
+
+			// 플립 판정
+			const bool bMirrorAxis0 = (WorldAxis0.Dot(DirectionToWidget) <= 0.0f);
+			const bool bMirrorAxis1 = (WorldAxis1.Dot(DirectionToWidget) <= 0.0f);
+			const FVector RenderWorldAxis0 = bMirrorAxis0 ? WorldAxis0 : -WorldAxis0;
+			const FVector RenderWorldAxis1 = bMirrorAxis1 ? WorldAxis1 : -WorldAxis1;
+
+			TArray<FNormalVertex> vertices;
+			TArray<uint32> indices;
+			FGizmoGeometry::GenerateQuarterRingMesh(RenderWorldAxis0, RenderWorldAxis1,
+				RotateCollisionConfig.InnerRadius, RotateCollisionConfig.OuterRadius,
+				RotateCollisionConfig.Thickness, vertices, indices);
+
+			if (!indices.empty())
+			{
+				ID3D11Buffer* vb = nullptr;
+				ID3D11Buffer* ib = nullptr;
+				FGizmoGeometry::CreateTempBuffers(vertices, indices, &vb, &ib);
+
+				P.VertexBuffer = vb;
+				P.NumVertices = static_cast<uint32>(vertices.size());
+				P.IndexBuffer = ib;
+				P.NumIndices = static_cast<uint32>(indices.size());
+				P.Rotation = FQuaternion::Identity();
 				P.Color = ZAxisId.GetColor();
 				Renderer.RenderEditorPrimitive(P, RenderState);
 
@@ -1063,7 +1159,7 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 		// X axis rendering
 		if (bShowX)
 		{
-			P.Rotation = AxisRots[0] * BaseRot;
+			P.Rotation = BaseRot * AxisRots[0];
 			P.Color = XAxisId.GetColor();
 			Renderer.RenderEditorPrimitive(P, RenderState);
 		}
@@ -1071,7 +1167,7 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 		// Y axis rendering
 		if (bShowY)
 		{
-			P.Rotation = AxisRots[1] * BaseRot;
+			P.Rotation = BaseRot * AxisRots[1];
 			P.Color = YAxisId.GetColor();
 			Renderer.RenderEditorPrimitive(P, RenderState);
 		}
@@ -1079,7 +1175,7 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 		// Z axis rendering
 		if (bShowZ)
 		{
-			P.Rotation = AxisRots[2] * BaseRot;
+			P.Rotation = BaseRot * AxisRots[2];
 			P.Color = ZAxisId.GetColor();
 			Renderer.RenderEditorPrimitive(P, RenderState);
 		}

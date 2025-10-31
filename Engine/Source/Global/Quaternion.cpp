@@ -1,6 +1,20 @@
 #include "pch.h"
 #include "Global/Quaternion.h"
 
+static float NormalizeAxis(float Angle)
+{
+	Angle = fmodf(Angle, 360.f);
+	if (Angle > 180.f)
+	{
+		Angle -= 360.f;
+	}
+	else if (Angle < -180.f)
+	{
+		Angle += 360.f;
+	}
+	return Angle;
+}
+
 FQuaternion FQuaternion::FromAxisAngle(const FVector& Axis, float AngleRad)
 {
 	FVector N = Axis;
@@ -17,24 +31,23 @@ FQuaternion FQuaternion::FromAxisAngle(const FVector& Axis, float AngleRad)
 FQuaternion FQuaternion::FromEuler(const FVector& EulerDeg)
 {
 	// EulerDeg: (X=Roll, Y=Pitch, Z=Yaw) in degrees
-	// UE Standard: Yaw → Pitch → Roll (intrinsic rotations)
+	// Unreal Engine Standard: FRotator(Pitch, Yaw, Roll) → FQuat
 	FVector Radians = FVector::GetDegreeToRadian(EulerDeg);
 
-	float cr = cosf(Radians.X * 0.5f); // Roll
-	float sr = sinf(Radians.X * 0.5f);
-	float cp = cosf(Radians.Y * 0.5f); // Pitch
-	float sp = sinf(Radians.Y * 0.5f);
-	float cy = cosf(Radians.Z * 0.5f); // Yaw
-	float sy = sinf(Radians.Z * 0.5f);
+	float SR = sinf(Radians.X * 0.5f); // Roll
+	float CR = cosf(Radians.X * 0.5f);
+	float SP = sinf(Radians.Y * 0.5f); // Pitch
+	float CP = cosf(Radians.Y * 0.5f);
+	float SY = sinf(Radians.Z * 0.5f); // Yaw
+	float CY = cosf(Radians.Z * 0.5f);
 
-	// UE Standard Yaw → Pitch → Roll quaternion composition
-	// Reference: UE5 Quat.h MakeFromEuler
-	return FQuaternion(
-		cr * sp * sy - sr * cp * cy, // X
-		-cr * sp * cy - sr * cp * sy, // Y
-		cr * cp * sy - sr * sp * cy, // Z
-		cr * cp * cy + sr * sp * sy  // W
-	);
+	// Unreal Engine Standard Formula
+	return {
+		 CR * SP * SY - SR * CP * CY, // X
+		-CR * SP * CY - SR * CP * SY, // Y
+		 CR * CP * SY - SR * SP * CY, // Z
+		 CR * CP * CY + SR * SP * SY  // W
+	};
 }
 
 FQuaternion FQuaternion::FromRotationMatrix(const FMatrix& M)
@@ -45,16 +58,16 @@ FQuaternion FQuaternion::FromRotationMatrix(const FMatrix& M)
     {
         float s = 0.5f / sqrtf(trace + 1.0f);
         Q.W = 0.25f / s;
-        Q.X = (M.Data[2][1] - M.Data[1][2]) * s;
-        Q.Y = (M.Data[0][2] - M.Data[2][0]) * s;
-        Q.Z = (M.Data[1][0] - M.Data[0][1]) * s;
+        Q.X = (M.Data[1][2] - M.Data[2][1]) * s;
+        Q.Y = (M.Data[2][0] - M.Data[0][2]) * s;
+        Q.Z = (M.Data[0][1] - M.Data[1][0]) * s;
     }
     else
     {
         if (M.Data[0][0] > M.Data[1][1] && M.Data[0][0] > M.Data[2][2])
         {
             float s = 2.0f * sqrtf(1.0f + M.Data[0][0] - M.Data[1][1] - M.Data[2][2]);
-            Q.W = (M.Data[2][1] - M.Data[1][2]) / s;
+            Q.W = (M.Data[1][2] - M.Data[2][1]) / s; // 부호 반전
             Q.X = 0.25f * s;
             Q.Y = (M.Data[0][1] + M.Data[1][0]) / s;
             Q.Z = (M.Data[0][2] + M.Data[2][0]) / s;
@@ -62,7 +75,7 @@ FQuaternion FQuaternion::FromRotationMatrix(const FMatrix& M)
         else if (M.Data[1][1] > M.Data[2][2])
         {
             float s = 2.0f * sqrtf(1.0f + M.Data[1][1] - M.Data[0][0] - M.Data[2][2]);
-            Q.W = (M.Data[0][2] - M.Data[2][0]) / s;
+            Q.W = (M.Data[2][0] - M.Data[0][2]) / s; // 부호 반전
             Q.X = (M.Data[0][1] + M.Data[1][0]) / s;
             Q.Y = 0.25f * s;
             Q.Z = (M.Data[1][2] + M.Data[2][1]) / s;
@@ -70,7 +83,7 @@ FQuaternion FQuaternion::FromRotationMatrix(const FMatrix& M)
         else
         {
             float s = 2.0f * sqrtf(1.0f + M.Data[2][2] - M.Data[0][0] - M.Data[1][1]);
-            Q.W = (M.Data[1][0] - M.Data[0][1]) / s;
+            Q.W = (M.Data[0][1] - M.Data[1][0]) / s; // 부호 반전
             Q.X = (M.Data[0][2] + M.Data[2][0]) / s;
             Q.Y = (M.Data[1][2] + M.Data[2][1]) / s;
             Q.Z = 0.25f * s;
@@ -90,20 +103,20 @@ FVector FQuaternion::ToEuler() const
 	const float YawY = 2.f * (W * Z + X * Y);
 	const float YawX = (1.f - 2.f * (Y * Y + Z * Z));
 
-	const float SINGULARITY_THRESHOLD = 0.4999995f;
-	const float RAD_TO_DEG = (180.f) / PI;
+	constexpr float SINGULARITY_THRESHOLD = 0.4999995f;
+	constexpr float RAD_TO_DEG = (180.f) / PI;
 
 	if (SingularityTest < -SINGULARITY_THRESHOLD) // South pole singularity
 	{
 		Euler.Y = -90.f; // Pitch = -90°
-		Euler.Z = atan2f(-X, W) * RAD_TO_DEG * -2.f;
-		Euler.X = 0.f; // Roll is lost (Gimbal Lock)
+		Euler.Z = atan2f(YawY, YawX) * RAD_TO_DEG;
+		Euler.X = NormalizeAxis(-Euler.Z - (2.f * atan2f(X, W) * RAD_TO_DEG));
 	}
 	else if (SingularityTest > SINGULARITY_THRESHOLD) // North pole singularity
 	{
 		Euler.Y = 90.f; // Pitch = 90°
-		Euler.Z = atan2f(X, W) * RAD_TO_DEG * 2.f;
-		Euler.X = 0.f; // Roll is lost (Gimbal Lock)
+		Euler.Z = atan2f(YawY, YawX) * RAD_TO_DEG;
+		Euler.X = NormalizeAxis(Euler.Z - (2.f * atan2f(X, W) * RAD_TO_DEG));
 	}
 	else // Normal case
 	{
@@ -130,17 +143,17 @@ FMatrix FQuaternion::ToRotationMatrix() const
     const float WZ = W * Z;
 
     M.Data[0][0] = 1.0f - 2.0f * (Y2 + Z2);
-    M.Data[0][1] = 2.0f * (XY - WZ);
-    M.Data[0][2] = 2.0f * (XZ + WY);
+    M.Data[0][1] = 2.0f * (XY + WZ);
+    M.Data[0][2] = 2.0f * (XZ - WY);
     M.Data[0][3] = 0.0f;
 
-    M.Data[1][0] = 2.0f * (XY + WZ);
+    M.Data[1][0] = 2.0f * (XY - WZ);
     M.Data[1][1] = 1.0f - 2.0f * (X2 + Z2);
-    M.Data[1][2] = 2.0f * (YZ - WX);
+    M.Data[1][2] = 2.0f * (YZ + WX);
     M.Data[1][3] = 0.0f;
 
-    M.Data[2][0] = 2.0f * (XZ - WY);
-    M.Data[2][1] = 2.0f * (YZ + WX);
+    M.Data[2][0] = 2.0f * (XZ + WY);
+    M.Data[2][1] = 2.0f * (YZ - WX);
     M.Data[2][2] = 1.0f - 2.0f * (X2 + Y2);
     M.Data[2][3] = 0.0f;
 
@@ -154,12 +167,12 @@ FMatrix FQuaternion::ToRotationMatrix() const
 
 FQuaternion FQuaternion::operator*(const FQuaternion& Q) const
 {
-	return FQuaternion(
+	return {
 		W * Q.X + X * Q.W + Y * Q.Z - Z * Q.Y,
 		W * Q.Y - X * Q.Z + Y * Q.W + Z * Q.X,
 		W * Q.Z + X * Q.Y - Y * Q.X + Z * Q.W,
 		W * Q.W - X * Q.X - Y * Q.Y - Z * Q.Z
-	);
+	};
 }
 
 void FQuaternion::Normalize()
@@ -180,23 +193,25 @@ FQuaternion FQuaternion::MakeFromDirection(const FVector& Direction)
 	FVector Dir = Direction.GetNormalized();
 
 	float Dot = ForwardVector.Dot(Dir);
-	if (Dot == 1.f) { return Identity(); }
+	if (Dot == 1.f)
+	{
+		return Identity();
+	}
 
 	if (Dot == -1.f)
 	{
-		// 180도 회전
-		FVector RotAxis = FVector::UpVector().Cross(ForwardVector);
-		if (RotAxis.IsZero()) // Forward가 UP 벡터와 평행하면 다른 축 사용
+		FVector RotAxis = ForwardVector.Cross(FVector::UpVector());
+		if (RotAxis.IsZero()) // Forward가 UP 벡터와 평행하면 Right 벡터 사용
 		{
-			RotAxis = FVector::ForwardVector().Cross(ForwardVector);
+			RotAxis = FVector::RightVector();
 		}
 		return FromAxisAngle(RotAxis.GetNormalized(), PI);
 	}
 
 	float AngleRad = acos(Dot);
 
-	// 두 벡터에 수직인 회전축 계산 후 쿼터니언 생성
-	FVector Axis = Dir.Cross(ForwardVector);
+	// ForwardVector를 Dir로 회전시키는 회전축 계산
+	FVector Axis = ForwardVector.Cross(Dir);
 	Axis.Normalize();
 	return FromAxisAngle(Axis, AngleRad);
 }
@@ -205,7 +220,7 @@ FVector FQuaternion::RotateVector(const FQuaternion& q, const FVector& v)
 {
 	FQuaternion p(v.X, v.Y, v.Z, 0.0f);
 	FQuaternion r = q * p * q.Inverse();
-	return FVector(r.X, r.Y, r.Z);
+	return { r.X, r.Y, r.Z };
 }
 
 FVector FQuaternion::RotateVector(const FVector& V) const
