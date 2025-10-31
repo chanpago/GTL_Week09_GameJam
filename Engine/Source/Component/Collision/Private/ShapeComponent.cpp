@@ -11,9 +11,26 @@ UShapeComponent::UShapeComponent()
 void UShapeComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
-    // TODO(SDM)
-    // 현재 프로젝트의 FJsonSerializer에 Vector4 직렬화 헬퍼가 없으므로
-    // ShapeColor, bDrawOnlyIfSelected는 직렬화에서 제외합니다. 필요 시 확장하세요.
+    if (bInIsLoading)
+    {
+        // 1) 색상 로드: 배열 [R,G,B,A] 또는 "#RRGGBB"/"#RRGGBBAA"
+        FColor LoadedColor = GetShapeColor(); // 기본값: 현재 보유 색상
+        FJsonSerializer::ReadColor(InOutHandle, "ShapeColor", LoadedColor, FColor(255, 255, 255, 51));
+        SetShapeColor(LoadedColor);
+
+        // 2) 플래그 로드: 문자열 "true"/"false" 패턴 유지
+        FString DrawOnlyString;
+        FJsonSerializer::ReadString(InOutHandle, "bDrawOnlyIfSelected", DrawOnlyString, "false");
+        SetDrawOnlyIfSelected(DrawOnlyString == "true");
+    }
+    else
+    {
+        // 1) 색상 저장: [R,G,B,A]
+        InOutHandle["ShapeColor"] = FJsonSerializer::ColorToJson(GetShapeColor());
+
+        // 2) 플래그 저장: 문자열 "true"/"false"
+        InOutHandle["bDrawOnlyIfSelected"] = ShouldDrawOnlyIfSelected() ? "true" : "false";
+    }
 }
 
 UObject* UShapeComponent::Duplicate()

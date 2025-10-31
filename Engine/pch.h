@@ -44,6 +44,7 @@
 #include "Source/Global/CoreTypes.h"
 #include "Source/Global/Macro.h"
 #include "Source/Global/Function.h"
+#include "Source/Global/Color.h"
 #include "Source/Utility/Public/ScopeCycleCounter.h"
 #include "Source/Editor/Public/EditorEngine.h"
 

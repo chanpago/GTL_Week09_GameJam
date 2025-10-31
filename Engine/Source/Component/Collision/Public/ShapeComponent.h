@@ -12,8 +12,8 @@ public:
 
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
-    FVector4 GetShapeColor() const { return ShapeColor; }
-    void SetShapeColor(const FVector4& InColor) { ShapeColor = InColor; }
+    FColor GetShapeColor() const { return ShapeColor; }
+    void SetShapeColor(const FColor& InColor) { ShapeColor = InColor; }
 
     bool ShouldDrawOnlyIfSelected() const { return bDrawOnlyIfSelected; }
     void SetDrawOnlyIfSelected(bool bInDrawOnlyIfSelected) { bDrawOnlyIfSelected = bInDrawOnlyIfSelected; }
@@ -25,6 +25,6 @@ protected:
 
 protected:
     // TODO(SDM) - FColor 만들기
-    FVector4 ShapeColor = FVector4{ 1.f, 1.f, 1.f, 0.2f };
+    FColor ShapeColor = FColor(255, 255, 255, 51);
     bool bDrawOnlyIfSelected = false;
 };

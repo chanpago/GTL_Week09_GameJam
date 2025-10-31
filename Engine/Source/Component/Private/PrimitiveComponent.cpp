@@ -197,6 +197,10 @@ void UPrimitiveComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 
 }
 
+/* =========================
+ *	Collision Section
+   ========================= */
+
 /*	
 	현재는 AABB 기반의 단순 충돌입니다.
 	OBB는 GetWorldAABB에서 월드 AABB로 변환되므로 그대로 동작합니다. 
