@@ -7,12 +7,21 @@
 #include "Core/Public/Name.h"
 #include "Core/Public/NewObject.h"
 
+
 uint32 UEngineStatics::NextUUID = 0;
+
+uint32 UObject::GlobalSerialCounter = 0;
 
 TArray<UObject*>& GetUObjectArray()
 {
-	static TArray<UObject*> GUObjectArray;
+	static TArray<UObject*> GUObjectArray;	
 	return GUObjectArray;
+}
+
+TArray<FObjectSlot>& GetUObjectSlotArray()
+{
+	static TArray<FObjectSlot> GUObjectSlotArray;
+	return GUObjectSlotArray;
 }
 
 IMPLEMENT_CLASS_BASE(UObject)
@@ -24,6 +33,11 @@ UObject::UObject()
 	
 	GetUObjectArray().emplace_back(this);
 	InternalIndex = static_cast<uint32>(GetUObjectArray().size()) - 1;
+
+	FObjectSlot Slot;
+	Slot.SerialNumber = ++GlobalSerialCounter;
+	Slot.bIsAlive = true;
+	GetUObjectSlotArray().emplace_back(Slot);
 }
 
 UObject::~UObject()
@@ -34,6 +48,7 @@ UObject::~UObject()
 	if (InternalIndex < GetUObjectArray().size())
 	{
 		GetUObjectArray()[InternalIndex] = nullptr;
+		GetUObjectSlotArray()[InternalIndex].bIsAlive = false;
 	}
 }
 

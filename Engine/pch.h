@@ -47,6 +47,8 @@
 #include "Source/Global/Color.h"
 #include "Source/Utility/Public/ScopeCycleCounter.h"
 #include "Source/Editor/Public/EditorEngine.h"
+#include "Global/Delegate.h"
+#include "Global/WeakObjectPtr.h"
 #include "Source/Global/Octree.h"
 
 using std::clamp;
