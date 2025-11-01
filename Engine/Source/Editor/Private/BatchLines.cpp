@@ -34,6 +34,7 @@ UBatchLines::UBatchLines() : Grid(), BoundingBoxLines()
 	Primitive.NumIndices = static_cast<uint32>(Indices.size());
 	Primitive.VertexBuffer = FRenderResourceFactory::CreateVertexBuffer(Vertices.data(), Primitive.NumVertices * sizeof(FVector), true);
 	Primitive.IndexBuffer = FRenderResourceFactory::CreateIndexBuffer(Indices.data(), Primitive.NumIndices * sizeof(uint32));	Primitive.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+	Primitive.Color = FVector4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 UBatchLines::~UBatchLines()
@@ -225,8 +226,10 @@ void UBatchLines::UpdateVertexBuffer()
 		{
 			NumOctreeVertices += Line.GetNumVertices();
 		}
-
-		Vertices.resize(NumGridVertices + NumBoxVertices + NumSpotLightVertices + NumOctreeVertices);
+		Vertices.resize(NumGridVertices + 
+			NumBoxVertices + 
+			NumSpotLightVertices + 
+			NumOctreeVertices);
 
 		Grid.MergeVerticesAt(Vertices, 0);
 		BoundingBoxLines.MergeVerticesAt(Vertices, NumGridVertices);
@@ -243,7 +246,6 @@ void UBatchLines::UpdateVertexBuffer()
 			Line.MergeVerticesAt(Vertices, CurrentOffset);
 			CurrentOffset += Line.GetNumVertices();
 		}
-
 		SetIndices();
 
 		Primitive.NumVertices = static_cast<uint32>(Vertices.size());
@@ -330,3 +332,51 @@ void UBatchLines::SetIndices()
 	}
 }
 
+void UBatchLines::RenderSingleBounding(const IBoundingVolume* InBounding, const FColor& InColor)
+{
+	if (!InBounding) { return; }
+
+	UBoundingBoxLines Single;
+	Single.UpdateVertices(InBounding);
+
+	TArray<FVector> LocalVertices;
+	LocalVertices.resize(Single.GetNumVertices());
+	Single.MergeVerticesAt(LocalVertices, 0);
+
+	TArray<uint32> LocalIndices;
+	const EBoundingVolumeType Type = Single.GetCurrentType();
+	int32* IndicesPtr = Single.GetIndices(Type);
+	const uint32 NumIdx = Single.GetNumIndices(Type);
+	if (IndicesPtr && NumIdx > 0)
+	{
+		LocalIndices.resize(NumIdx);
+		for (uint32 Idx = 0; Idx < NumIdx; ++Idx)
+		{
+			LocalIndices[Idx] = static_cast<uint32>(IndicesPtr[Idx]);
+		}
+	}
+	if (LocalVertices.empty() || LocalIndices.empty())
+	{
+		return;
+	}
+
+	FEditorPrimitive Temp = Primitive;
+	Temp.Color = FVector4(
+		static_cast<float>(InColor.R) / 255.0f,
+		static_cast<float>(InColor.G) / 255.0f,
+		static_cast<float>(InColor.B) / 255.0f,
+		static_cast<float>(InColor.A) / 255.0f
+	);
+	Temp.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+	Temp.NumVertices = static_cast<uint32>(LocalVertices.size());
+	Temp.NumIndices = static_cast<uint32>(LocalIndices.size());
+
+	Temp.VertexBuffer = FRenderResourceFactory::CreateVertexBuffer(LocalVertices.data(), Temp.NumVertices * sizeof(FVector),
+		true);
+	Temp.IndexBuffer = FRenderResourceFactory::CreateIndexBuffer(LocalIndices.data(), Temp.NumIndices * sizeof(uint32));
+
+	URenderer::GetInstance().RenderEditorPrimitive(Temp, Temp.RenderState, sizeof(FVector), sizeof(uint32));
+
+	SafeRelease(Temp.VertexBuffer);
+	SafeRelease(Temp.IndexBuffer);
+}

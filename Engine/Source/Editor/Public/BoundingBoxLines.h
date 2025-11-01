@@ -37,5 +37,8 @@ private:
 	TArray<int32> SpotLightLineIdx;
 
 	int32 SphereLineIdx[360];         // 각 대원 60세그 × 2 인덱스 × 3개
+
+	TArray<int32> CapsuleLineIdx;
+	uint32 CapsuleVertices = 0;
 };
 

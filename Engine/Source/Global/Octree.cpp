@@ -288,3 +288,37 @@ void FOctree::DeepCopy(FOctree* OutOctree) const
 		}
 	}
 }
+
+void FOctree::QueryOverlap(const FAABB& QueryBox, TArray<UPrimitiveComponent*>& OutCandidates) const
+{
+	if (!BoundingBox.IsIntersected(QueryBox))
+	{
+		return;
+	}
+
+	if (IsLeafNode())
+	{
+		for (UPrimitiveComponent* Primitive : Primitives)
+		{
+			if (!Primitive) { continue; }
+			FVector PrimMin, PrimMax;
+			Primitive->GetWorldAABB(PrimMin, PrimMax);
+			FAABB PrimitiveAABB(PrimMin, PrimMax);
+			if (PrimitiveAABB.IsIntersected(QueryBox))
+			{
+				OutCandidates.push_back(Primitive);
+			}
+		}
+		return;
+	}
+
+	for (int32 Index = 0; Index < 8; ++Index)
+	{
+		const FOctree* Child = Children[Index];
+		if (Child)
+		{
+			Child->QueryOverlap(QueryBox, OutCandidates);
+		}
+	}
+
+}

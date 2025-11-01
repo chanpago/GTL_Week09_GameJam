@@ -28,6 +28,7 @@ public:
 	void Collect2DRender(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
 	void RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
 	void RenderGizmoForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
+	void RenderCollision();
 
 	void SelectActor(AActor* InActor);
 	void SelectComponent(UActorComponent* InComponent);

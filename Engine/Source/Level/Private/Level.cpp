@@ -6,6 +6,7 @@
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Component/Public/AmbientLightComponent.h"
 #include "Component/Public/SpotLightComponent.h"
+#include "Component/Collision/Public/ShapeComponent.h"
 #include "Core/Public/Object.h"
 #include "Editor/Public/Editor.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
@@ -44,6 +45,8 @@ void ULevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 	// 불러오기
 	if (bInIsLoading)
 	{
+		LightComponents.clear();
+		ShapeComponents.clear();
 		// NOTE: 레벨 로드 시 NextUUID를 변경하면 UUID 충돌이 발생하므로 관련 기능 구현을 보류합니다.
 		uint32 NextUUID = 0;
 		FJsonSerializer::ReadUint32(InOutHandle, "NextUUID", NextUUID);
@@ -146,6 +149,10 @@ void ULevel::RegisterComponent(UActorComponent* InComponent)
 			// 실패하면 DynamicPrimitiveQueue 목록에 추가
 			OnPrimitiveUpdated(PrimitiveComponent);
 		}
+		if (auto Shape = Cast<UShapeComponent>(PrimitiveComponent))
+		{
+			ShapeComponents.push_back(Shape);
+		}
 	}
 	else if (auto LightComponent = Cast<ULightComponent>(InComponent))
 	{
@@ -168,8 +175,6 @@ void ULevel::RegisterComponent(UActorComponent* InComponent)
 		{
 			LightComponents.push_back(AmbientLightComponent);
 		}
-		
-		
 	}
 	UE_LOG("Level: '%s' 컴포넌트를 씬에 등록했습니다.", InComponent->GetName().ToString().data());
 }
@@ -192,6 +197,14 @@ void ULevel::UnregisterComponent(UActorComponent* InComponent)
 		StaticOctree->Remove(PrimitiveComponent);
 	
 		OnPrimitiveUnregistered(PrimitiveComponent);
+		if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(PrimitiveComponent))
+		{
+			if (auto It = std::find(ShapeComponents.begin(), ShapeComponents.end(), ShapeComponent); It !=
+				ShapeComponents.end())
+			{
+				ShapeComponents.erase(It);
+			}
+		}
 	}
 	else if (auto LightComponent = Cast<ULightComponent>(InComponent))
 	{
@@ -199,9 +212,7 @@ void ULevel::UnregisterComponent(UActorComponent* InComponent)
 		{
 			LightComponents.erase(It);
 		}
-		
 	}
-	
 }
 
 void ULevel::AddActorToLevel(AActor* InActor)
@@ -225,7 +236,11 @@ void ULevel::AddLevelComponent(AActor* Actor)
 	{
 		if (auto PrimitiveComponent = Cast<UPrimitiveComponent>(Component))
 		{
-			OnPrimitiveUpdated(PrimitiveComponent);			
+			OnPrimitiveUpdated(PrimitiveComponent);		
+			if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(PrimitiveComponent))
+			{
+				ShapeComponents.push_back(ShapeComponent);
+			}
 		}
 		else if (auto LightComponent = Cast<ULightComponent>(Component))
 		{

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Component/Public/SceneComponent.h"
 #include "Physics/Public/BoundingVolume.h"
+#include "Core/Public/Object.h" // GetUObjectArray 사용 예정
 
 UCLASS()
 class UPrimitiveComponent : public USceneComponent
@@ -80,4 +81,32 @@ public:
 
 protected:
 	virtual void DuplicateSubObjects(UObject* DuplicatedObject) override;
+
+
+/* =========================
+ *	Collision Section
+   ========================= */
+public:
+	// 충돌/오버랩 설정
+	bool bGenerateOverlapEvents = true;
+	bool bBlockComponent = false;
+
+	// 간단 오버랩 정보
+	struct FOverlapInfo
+	{
+		UPrimitiveComponent* OtherComponent = nullptr;
+		AActor* OtherActor = nullptr;
+	};
+
+	const TArray<FOverlapInfo>& GetOverlapInfos() const { return OverlapInfos; }
+
+	// 오버랩 쿼리(즉시 판정)
+	bool IsOverlappingComponent(const UPrimitiveComponent* Other) const;
+	bool IsOverlappingActor(const AActor* Other) const;
+
+	// 프레임 갱신 시 오버랩 목록 갱신(델리게이트 없는 경량 버전)
+	// TODO(SDM) - 추후에 델리게이트 호출 버전으로
+	void UpdateOverlaps();
+protected:
+	TArray<FOverlapInfo> OverlapInfos;
 };

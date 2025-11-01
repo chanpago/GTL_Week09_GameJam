@@ -24,6 +24,12 @@ struct FVector
 	 */
 	FVector(const FVector& InOther);
 
+	// FVector4 -> FVector 변환 생성자 (W는 사용하지 않음)
+	FVector(const struct FVector4& InOther);
+
+	// 동차좌표(Vector4)에서 W로 나눠 3D로 변환
+	FVector FromHomogeneous(const struct FVector4& InOther);
+
 	void operator=(const FVector4& InOther);
 
 	/**

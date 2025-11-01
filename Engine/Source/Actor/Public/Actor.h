@@ -138,4 +138,11 @@ public:
 
 	virtual UObject* DuplicateForEditor() override;
 	virtual void DuplicateSubObjectsForEditor(UObject* DuplicatedObject) override;
+
+	/* =========================
+	*	Collision Section
+	  ========================= */
+public:
+	bool IsOverlappingActor(const AActor* Other) const;
+
 };

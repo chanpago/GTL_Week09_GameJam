@@ -253,7 +253,66 @@ public:
 		OutValue = InDefaultValue;
 		return false;
 	}
+	/**
+	* @brief JSON에서 FColor를 읽어옵니다. [R,G,B,A] 배열 또는 "#RRGGBB"/"#RRGGBBAA" 문자열을 지원합니다.
+	* @return 성공하면 true, 실패하면 false를 반환합니다.
+	*/
+	static bool ReadColor(const JSON& InJson, const FString& InKey, FColor& OutValue, const FColor& InDefaultValue =
+		FColor::Black(), bool bInUseLog = true)
+	{
+		if (InJson.hasKey(InKey))
+		{
+			const JSON& Value = InJson.at(InKey);
+			// 1) 배열 형식: [R,G,B] 또는 [R,G,B,A] (0..255)
+			if (Value.JSONType() == JSON::Class::Array)
+			{
+				const int Count = static_cast<int>(Value.size());
+				if (Count == 3 || Count == 4)
+				{
+					try
+					{
+						// 정수/실수 혼용 대비: ToFloat로 읽고 0..255로 변환
+						auto ToByte = [](float InV) -> std::uint8_t
+							{
+								if (InV < 0.0f) InV = 0.0f;
+								if (InV > 255.0f) InV = 255.0f;
+								return static_cast<std::uint8_t>(InV + 0.5f);
+							};
 
+						const float Rf = static_cast<float>(Value.at(0).ToFloat());
+						const float Gf = static_cast<float>(Value.at(1).ToFloat());
+						const float Bf = static_cast<float>(Value.at(2).ToFloat());
+						const float Af = (Count == 4) ? static_cast<float>(Value.at(3).ToFloat()) : 255.0f;
+
+						OutValue = FColor(ToByte(Rf), ToByte(Gf), ToByte(Bf), ToByte(Af));
+						return true;
+					}
+					catch (const std::exception&)
+					{
+					}
+				}
+			}
+			// 2) 문자열 형식: "#RRGGBB" 또는 "#RRGGBBAA"
+			else if (Value.JSONType() == JSON::Class::String)
+			{
+				try
+				{
+					const FString Str = Value.ToString();
+					OutValue = FColor::FromHex(Str.c_str());
+					return true;
+				}
+				catch (const std::exception&)
+				{
+				}
+			}
+		}
+
+		if (bInUseLog)
+			UE_LOG_ERROR("[JsonSerializer] %s Color 파싱에 실패했습니다 (기본값 사용)", InKey.c_str());
+
+		OutValue = InDefaultValue;
+		return false;
+	}
 	//====================================================================================
 	// Converting To JSON
 	//====================================================================================
@@ -273,7 +332,18 @@ public:
 		return VectorArray;
 	}
 
-
+	/**
+	* @brief FColor를 JSON 배열 [R,G,B,A]로 변환합니다.
+	*/
+	static JSON ColorToJson(const FColor& InColor)
+	{
+		JSON Array = JSON::Make(JSON::Class::Array);
+		Array.append(static_cast<double>(InColor.R));
+		Array.append(static_cast<double>(InColor.G));
+		Array.append(static_cast<double>(InColor.B));
+		Array.append(static_cast<double>(InColor.A));
+		return Array;
+	}
 	//====================================================================================
 	// File I/O
 	//====================================================================================
