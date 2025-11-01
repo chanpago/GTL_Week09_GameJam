@@ -253,7 +253,9 @@ void UStaticMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotIndex)
 void UStaticMeshComponentWidget::RenderOptions()
 {
 	bool bIsScrollEnabled = StaticMeshComponent->IsScrollEnabled();
-
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));  // 체크 표시 흰색
 	if (ImGui::Checkbox("Enable Scroll", &bIsScrollEnabled))
 	{
 		if (bIsScrollEnabled)
@@ -277,6 +279,7 @@ void UStaticMeshComponentWidget::RenderOptions()
 			StaticMeshComponent->DisableNormalMap();
 		}
 	}
+	ImGui::PopStyleColor(3);  // 3개의 스타일 복원
 }
 
 FString UStaticMeshComponentWidget::GetMaterialDisplayName(UMaterial* Material) const

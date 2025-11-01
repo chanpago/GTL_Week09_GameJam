@@ -15,7 +15,13 @@ void USphereComponentWidget::Update()
 void USphereComponentWidget::RenderWidget()
 {
     if (!SphereComponent) return;
-
+    // 모든 입력 필드를 검은색으로 설정
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));  // 체크 표시 흰색
     ImGui::Separator();
 
     bool GenerateOverlap = SphereComponent->bGenerateOverlapEvents;
@@ -79,4 +85,6 @@ void USphereComponentWidget::RenderWidget()
     {
         ImGui::SetTooltip("충돌 컴포넌트가 직접 선택될 때만 그립니다.");
     }
+    // 스타일 복원
+    ImGui::PopStyleColor(6);
 }
