@@ -490,4 +490,3 @@ bool UInputManager::IsMouseDoubleClicked(EKeyInput InMouseButton) const
 	}
 	return false;
 }
-

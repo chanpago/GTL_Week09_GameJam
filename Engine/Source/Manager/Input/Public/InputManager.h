@@ -3,6 +3,7 @@
 
 class FAppWindow;
 
+
 UCLASS()
 class UInputManager :
 	public UObject
@@ -44,12 +45,13 @@ public:
 	const FVector& GetMouseNDCPosition() const { return NDCMousePosition; }
 	const FVector& GetMousePosition() const { return CurrentMousePosition; }
 	const FVector& GetMouseDelta() const { return MouseDelta; }
-
+	
 	void ClearMouseWheelDelta()
 	{
 		MouseWheelDelta = 0.0f;
 	}
-private:
+	
+private:	
 	// Key Status
 	TMap<EKeyInput, bool> CurrentKeyState;
 	TMap<EKeyInput, bool> PreviousKeyState;
