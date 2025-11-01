@@ -22,5 +22,5 @@ protected:
     void DuplicateSubObjects(UObject* DuplicatedObject) override;
 
 protected:
-    float SphereRadius = 50.f;
+    float SphereRadius = 1.f;
 };

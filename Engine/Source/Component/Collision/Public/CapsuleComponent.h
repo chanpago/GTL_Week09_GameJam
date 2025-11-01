@@ -27,6 +27,6 @@ protected:
     void DuplicateSubObjects(UObject* DuplicatedObject) override;
 
 protected:
-    float CapsuleHalfHeight = 88.f; 
-    float CapsuleRadius = 34.f;
+    float CapsuleHalfHeight = 2.f; 
+    float CapsuleRadius = 1.f;
 };

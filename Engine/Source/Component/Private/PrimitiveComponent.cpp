@@ -236,11 +236,6 @@ void UPrimitiveComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
  *	Collision Section
    ========================= */
 
-/*	
-	현재는 AABB 기반의 단순 충돌입니다.
-	OBB는 GetWorldAABB에서 월드 AABB로 변환되므로 그대로 동작합니다. 
-	스피어/캡슐은 AABB 근사로 처리합니다.
-*/
 bool UPrimitiveComponent::IsOverlappingComponent(const UPrimitiveComponent* Other) const
 {
 	if (Other == nullptr || Other == this)
@@ -309,16 +304,23 @@ void UPrimitiveComponent::UpdateOverlaps()
 	}
 
 	AActor* ThisOwner = GetOwner();
-
+	if (!ThisOwner)
+	{
+		UE_LOG("UpdateOverlaps: Owner is nullptr!");
+		return;  // Owner가 없으면 충돌 검사 불가
+	}
+	// ========== 디버깅 로그 추가 ==========
+	//UE_LOG("UpdateOverlaps: Owner = %s", ThisOwner->GetName().ToString().c_str());
 	// ========== 1차 충돌 검사: 옥트리 (Broad Phase) ==========
 
-	// Level의 옥트리 가져오기
-	ULevel* Level = Cast<ULevel>(GWorld->GetLevel());
+	// Actor의 Outer는 Level이다
+	ULevel* Level = Cast<ULevel>(ThisOwner->GetOuter());
 	if (!Level || !Level->GetStaticOctree())
 	{
+		UE_LOG("UpdateOverlaps: Level or Octree is nullptr!");
 		return;  // 옥트리가 없으면 검사 불가
 	}
-
+	//UE_LOG("UpdateOverlaps: Level = %s, Octree exists", Level->GetName().ToString().c_str());
 	FOctree* Octree = Level->GetStaticOctree();
 
 	// 이 컴포넌트의 AABB
@@ -329,9 +331,10 @@ void UPrimitiveComponent::UpdateOverlaps()
 	// 옥트리에서 AABB 겹치는 후보군 추출
 	TArray<UPrimitiveComponent*> Candidates;
 	Octree->QueryOverlap(ThisAABB, Candidates);
-
+	//UE_LOG("UpdateOverlaps: Octree candidates = %d", Candidates.size());
 	// 동적 오브젝트도 포함 (옥트리에 없는 움직이는 오브젝트들)
 	const TArray<UPrimitiveComponent*>& DynamicPrimitives = Level->GetDynamicPrimitives();
+	//UE_LOG("UpdateOverlaps: Dynamic primitives = %d", DynamicPrimitives.size());
 	for (UPrimitiveComponent* DynamicPrim : DynamicPrimitives)
 	{
 		if (DynamicPrim && DynamicPrim != this)
@@ -339,6 +342,8 @@ void UPrimitiveComponent::UpdateOverlaps()
 			Candidates.push_back(DynamicPrim);
 		}
 	}
+
+	//UE_LOG("UpdateOverlaps: Total candidates = %d", Candidates.size());
 	// ========== 2차 충돌 검사: Narrow Phase ==========
 
 	// ShapeComponent인지 확인 (Shape가 아니면 정밀 검사 불가)
@@ -399,12 +404,9 @@ void UPrimitiveComponent::UpdateOverlaps()
 				// TODO(SDM): 디버그용 로그
 				TestDelegate.BroadCast(testvalue);
 				testvalue++;
-				UE_LOG("BroadCast, 숫자 떠야댐");
 			}
 		}
 	}
-	// TODO(SDM): 디버그용 로그
-	UE_LOG("됨");
 	// ========== 델리게이트 호출: BeginOverlap / EndOverlap ==========
 
 	if (bGenerateOverlapEvents)

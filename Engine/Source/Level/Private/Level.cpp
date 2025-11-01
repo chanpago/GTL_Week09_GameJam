@@ -22,7 +22,7 @@ IMPLEMENT_CLASS(ULevel, UObject)
 
 ULevel::ULevel()
 {
-	StaticOctree = new FOctree(FVector(0, 0, -5), 75, 0);
+	StaticOctree = new FOctree(FVector(0, 0, 0), 1000, 0);
 }
 
 ULevel::~ULevel()
@@ -311,6 +311,7 @@ void ULevel::DuplicateSubObjects(UObject* DuplicatedObject)
 	for (AActor* Actor : LevelActors)
 	{
 		AActor* DuplicatedActor = Cast<AActor>(Actor->Duplicate());
+		DuplicatedActor->SetOuter(DuplicatedLevel);
 		DuplicatedLevel->LevelActors.push_back(DuplicatedActor);
 		DuplicatedLevel->AddLevelComponent(DuplicatedActor);
 	}

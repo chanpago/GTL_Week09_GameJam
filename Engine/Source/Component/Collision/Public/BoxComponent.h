@@ -24,5 +24,5 @@ protected:
     void DuplicateSubObjects(UObject* DuplicatedObject) override;
 
 protected:
-    FVector BoxExtent = FVector(50.f, 50.f, 50.f);
+    FVector BoxExtent = FVector(1.f, 1.f, 1.f);
 };
