@@ -47,6 +47,7 @@
 #include "Source/Global/Color.h"
 #include "Source/Utility/Public/ScopeCycleCounter.h"
 #include "Source/Editor/Public/EditorEngine.h"
+#include "Source/Global/Octree.h"
 
 using std::clamp;
 using std::unordered_map;

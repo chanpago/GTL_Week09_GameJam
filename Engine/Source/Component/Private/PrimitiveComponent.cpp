@@ -14,6 +14,7 @@
 #include "Component/Collision/Public/CapsuleComponent.h"
 #include "Physics/Public/BoundingSphere.h"
 #include "Physics/Public/BoundingCapsule.h"
+#include "Physics/Public/CollisionUtil.h"
 
 IMPLEMENT_ABSTRACT_CLASS(UPrimitiveComponent, USceneComponent)
 
@@ -277,41 +278,78 @@ void UPrimitiveComponent::UpdateOverlaps()
 	}
 
 	AActor* ThisOwner = GetOwner();
-	const TArray<UObject*>& Objects = GetUObjectArray();
+	// ========== 1차 충돌 검사: 옥트리 (Broad Phase) ==========
 
+	  // Level의 옥트리 가져오기
+	ULevel* Level = Cast<ULevel>(GWorld->GetLevel());
+	if (!Level || !Level->GetStaticOctree())
+	{
+		return;  // 옥트리가 없으면 검사 불가
+	}
+
+	FOctree* Octree = Level->GetStaticOctree();
+
+	// 이 컴포넌트의 AABB
 	FVector ThisMin, ThisMax;
 	GetWorldAABB(ThisMin, ThisMax);
 	FAABB ThisAABB(ThisMin, ThisMax);
 
-	for (UObject* Obj : Objects)
+	// 옥트리에서 AABB 겹치는 후보군 추출
+	TArray<UPrimitiveComponent*> Candidates;
+	Octree->QueryOverlap(ThisAABB, Candidates);
+
+	// 동적 오브젝트도 포함 (옥트리에 없는 움직이는 오브젝트들)
+	const TArray<UPrimitiveComponent*>& DynamicPrimitives = Level->GetDynamicPrimitives();
+	for (UPrimitiveComponent* DynamicPrim : DynamicPrimitives)
 	{
-		UPrimitiveComponent* OtherPrim = Cast<UPrimitiveComponent>(Obj);
-		if (OtherPrim == nullptr || OtherPrim == this)
+		if (DynamicPrim && DynamicPrim != this)
+		{
+			Candidates.push_back(DynamicPrim);
+		}
+	}
+
+	// ========== 2차 충돌 검사: Narrow Phase ==========
+
+	// ShapeComponent인지 확인 (Shape가 아니면 정밀 검사 불가)
+	UShapeComponent* ThisShape = Cast<UShapeComponent>(this);
+	if (!ThisShape)
+	{
+		return;  // Shape가 아니면 Narrow Phase 불가
+	}
+
+	for (UPrimitiveComponent* Candidate : Candidates)
+	{
+		// 자기 자신 제외
+		if (Candidate == this)
 		{
 			continue;
 		}
 
-		// Owner가 없는 프리미티브는 스킵
-		if (OtherPrim->GetOwner() == nullptr)
+		// Owner가 없는 컴포넌트 제외
+		if (!Candidate->GetOwner())
 		{
 			continue;
 		}
 
-		// 같은 액터 내부끼리는 스킵(필요 시 제거 가능)
-		if (ThisOwner != nullptr && OtherPrim->GetOwner() == ThisOwner)
+		// 같은 Actor 내부 컴포넌트끼리 제외 (필요 시 제거 가능)
+		if (ThisOwner && Candidate->GetOwner() == ThisOwner)
 		{
 			continue;
 		}
 
-		FVector OtherMin, OtherMax;
-		OtherPrim->GetWorldAABB(OtherMin, OtherMax);
+		// 상대도 ShapeComponent여야 정밀 검사 가능
+		UShapeComponent* OtherShape = Cast<UShapeComponent>(Candidate);
+		if (!OtherShape)
+		{
+			continue;
+		}
 
-		FAABB OtherAABB(OtherMin, OtherMax);
-		if (ThisAABB.IsIntersected(OtherAABB))
+		// Narrow Phase 충돌 검사
+		if (CollisionUtil::TestOverlap(ThisShape, OtherShape))
 		{
 			FOverlapInfo Info;
-			Info.OtherComponent = OtherPrim;
-			Info.OtherActor = OtherPrim->GetOwner();
+			Info.OtherComponent = Candidate;
+			Info.OtherActor = Candidate->GetOwner();
 			OverlapInfos.push_back(Info);
 		}
 	}
