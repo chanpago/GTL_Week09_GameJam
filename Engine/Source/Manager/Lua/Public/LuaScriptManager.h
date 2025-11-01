@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <filesystem>
+#include <unordered_map>
 
 // Forward declaration to avoid circular dependency
 class ULuaScriptComponent;
@@ -53,12 +55,15 @@ private:
 
     std::unique_ptr<sol::state> LuaState;
     TArray<ULuaScriptComponent*> ActiveComponents;
+    bool bIsStartedUp = false;
 
     // Cache for loaded script files with file modification time
     struct FLuaScriptCacheInfo
     {
         sol::table ScriptTable;
         std::filesystem::file_time_type LastWriteTime;
+        std::filesystem::path ResolvedPath;
     };
     std::unordered_map<FString, FLuaScriptCacheInfo> ScriptCache;
 };
+

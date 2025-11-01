@@ -118,6 +118,11 @@ public:
 	void InitLuaScriptComponent();
 	bool BindSelfLuaProperties();
 	FString GetLuaScriptPathName();
+	void SetUseScript(bool bInUseScript);
+	bool IsUsingScript() const { return bUseScript; }
+	ULuaScriptComponent* GetLuaScriptComponent() const { return LuaScriptComponent; }
+	void PrintLocation() const;
+	bool HasBegunPlay() const { return bBegunPlay; }
 
 protected:
 	bool bCanEverTick = false;

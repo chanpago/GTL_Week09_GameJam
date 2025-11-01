@@ -5,11 +5,44 @@
 #include "Component/Public/ActorComponent.h"
 #include "Component/Public/SceneComponent.h"
 #include "Component/Public/TextComponent.h"
+#include "Component/Public/ULuaScriptComponent.h"
 #include "Global/Vector.h"
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/Path/Public/PathManager.h"
 #include "Texture/Public/Texture.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#include <shellapi.h>
+#pragma comment(lib, "Shell32.lib")
+#endif
+
+#include <filesystem>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+
+namespace
+{
+    FString SanitizeName(const FString& InName)
+    {
+        if (InName.empty())
+        {
+            return "Unnamed";
+        }
+
+        FString Result = InName;
+        for (char& ch : Result)
+        {
+            if (!std::isalnum(static_cast<unsigned char>(ch)) && ch != '_' && ch != '-')
+            {
+                ch = '_';
+            }
+        }
+        return Result;
+    }
+}
 
 IMPLEMENT_CLASS(UActorDetailWidget, UWidget)
 
@@ -56,6 +89,7 @@ void UActorDetailWidget::RenderWidget()
 	{
 		CachedSelectedActor = SelectedActor;
 		SelectedComponent = SelectedActor->GetRootComponent();
+		SyncScriptSelection(SelectedActor);
 	}
 
 	    // Actor 헤더 렌더링 (이름 + rename 기능)
@@ -164,12 +198,355 @@ void UActorDetailWidget::RenderActorHeader(AActor* InSelectedActor)
 			ImGui::SetTooltip("Double-Click to Rename");
 		}
 	}
+
+	ImGui::Spacing();
+	bool bUseScript = InSelectedActor->IsUsingScript();
+	if (ImGui::Checkbox("Use Lua Script", &bUseScript))
+	{
+		InSelectedActor->SetUseScript(bUseScript);
+		if (bUseScript)
+		{
+			InSelectedActor->BindSelfLuaProperties();
+		}
+	}
+
+	FString ScriptPath = InSelectedActor->GetLuaScriptPathName();
+	bool bHasScript = !ScriptPath.empty();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Create Script"))
+	{
+		//  현재 엔진 루트에서 template.lua를 찾아, 선택된 액터만의 스크립트 파일을 만들어 줌
+		// 성공하면 액터에 스크립트 경로를 설정하고 SetUseScript(true) → LoadScript() → BindSelfLuaProperties() 순서로 Lua 환경을 즉시 초기화
+		if (CreateLuaScriptForActor(InSelectedActor))
+		{
+			ScriptPath = InSelectedActor->GetLuaScriptPathName();
+			bHasScript = !ScriptPath.empty();
+			bUseScript = InSelectedActor->IsUsingScript();
+		}
+	}
+	
+	ImGui::SameLine();
+	if (ImGui::Button("Edit Script"))
+	{
+		EditLuaScript(ScriptPath);
+	}
+	
+
+	ImGui::NewLine();
+
+	std::filesystem::path ScriptsRoot = GetScriptsRootPath();
+	if (std::filesystem::exists(ScriptsRoot))
+	{
+		std::vector<FString> SceneFolders;
+		for (const auto& Entry : std::filesystem::directory_iterator(ScriptsRoot))
+		{
+			if (Entry.is_directory())
+			{
+				SceneFolders.push_back(Entry.path().filename().string());
+			}
+		}
+		std::sort(SceneFolders.begin(), SceneFolders.end());
+
+		const char* ScenePreview = SelectedScriptFolder.empty() ? "Select Scene" : SelectedScriptFolder.c_str();
+		if (ImGui::BeginCombo("Scene##LuaScript", ScenePreview))
+		{
+			for (const FString& Folder : SceneFolders)
+			{
+				bool bSceneSelected = (Folder == SelectedScriptFolder);
+				if (ImGui::Selectable(Folder.c_str(), bSceneSelected))
+				{
+					SelectedScriptFolder = Folder;
+					SelectedScriptFile.clear();
+				}
+				if (bSceneSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		if (!SelectedScriptFolder.empty())
+		{
+			std::filesystem::path FolderPath = ScriptsRoot / SelectedScriptFolder;
+			if (std::filesystem::exists(FolderPath))
+			{
+				std::vector<FString> ScriptFiles;
+				for (const auto& Entry : std::filesystem::directory_iterator(FolderPath))
+				{
+					if (Entry.is_regular_file() && Entry.path().extension() == ".lua")
+					{
+						ScriptFiles.push_back(Entry.path().filename().string());
+					}
+				}
+				std::sort(ScriptFiles.begin(), ScriptFiles.end());
+
+				const char* ScriptPreview = SelectedScriptFile.empty() ? "Select Script" : SelectedScriptFile.c_str();
+				if (ImGui::BeginCombo("Script##LuaScript", ScriptPreview))
+				{
+					for (const FString& FileName : ScriptFiles)
+					{
+						bool bScriptSelected = (FileName == SelectedScriptFile);
+						if (ImGui::Selectable(FileName.c_str(), bScriptSelected))
+						{
+							SelectedScriptFile = FileName;
+							if (ApplySelectedScript(InSelectedActor))
+							{
+								ScriptPath = InSelectedActor->GetLuaScriptPathName();
+								bHasScript = !ScriptPath.empty();
+								bUseScript = InSelectedActor->IsUsingScript();
+							}
+						}
+						if (bScriptSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+				}
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Scripts folder missing: %s", FolderPath.string().c_str());
+			}
+		}
+	}
+	else
+	{
+		ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Scripts folder not found: %s", ScriptsRoot.string().c_str());
+	}
+
+	if (bHasScript)
+	{
+		ImGui::TextWrapped("Script: %s", ScriptPath.c_str());
+	}
+
 }
 
 /**
  * @brief 컴포넌트들 렌더(SceneComponent는 트리 형태로, 아닌 것은 일반 형태로
  * @param InSelectedActor 선택된 Actor
  */
+bool UActorDetailWidget::CreateLuaScriptForActor(AActor* InSelectedActor)
+{
+    if (!InSelectedActor)
+    {
+        return false;
+    }
+
+    ULevel* CurrentLevel = GWorld ? GWorld->GetLevel() : nullptr;
+    FString SceneName = CurrentLevel ? CurrentLevel->GetName().ToString() : FString("DefaultLevel");
+    FString ActorName = InSelectedActor->GetName().ToString();
+
+    FString SceneFolder = SanitizeName(SceneName);
+    FString ActorFileName = SanitizeName(ActorName);
+    FString CombinedFileName = SceneFolder + "_" + ActorFileName + ".lua";
+
+    std::filesystem::path scriptsRoot = GetScriptsRootPath();
+    std::filesystem::path templatePath = scriptsRoot / "template.lua";
+
+    if (!std::filesystem::exists(templatePath))
+    {
+        UE_LOG_ERROR("ActorDetailWidget: template.lua not found at %s", templatePath.string().c_str());
+        return false;
+    }
+
+    std::filesystem::path sceneDir = scriptsRoot / SceneFolder;
+    std::error_code ec;
+    std::filesystem::create_directories(sceneDir, ec);
+    if (ec)
+    {
+        UE_LOG_ERROR("ActorDetailWidget: Failed to create directory: %s", sceneDir.string().c_str());
+        return false;
+    }
+
+    std::filesystem::path targetPath = sceneDir / CombinedFileName;
+    if (!std::filesystem::exists(targetPath))
+    {
+        ec.clear();
+        std::filesystem::copy_file(templatePath, targetPath, std::filesystem::copy_options::none, ec);
+        if (ec)
+        {
+            UE_LOG_ERROR("ActorDetailWidget: Failed to copy template to %s (%s)", targetPath.string().c_str(), ec.message().c_str());
+            return false;
+        }
+        UE_LOG_SUCCESS("ActorDetailWidget: Created Lua script %s", targetPath.string().c_str());
+    }
+    else
+    {
+        UE_LOG("ActorDetailWidget: Lua script already exists: %s", targetPath.string().c_str());
+    }
+
+    FString RelativeScript = "Scripts/" + SceneFolder + "/" + CombinedFileName;
+    InSelectedActor->SetUseScript(true);
+
+    bool bLoaded = false;
+    if (ULuaScriptComponent* LuaComponent = InSelectedActor->GetLuaScriptComponent())
+    {
+        LuaComponent->SetScriptName(RelativeScript);
+        bLoaded = LuaComponent->LoadScript();
+    }
+
+    if (bLoaded)
+    {
+        InSelectedActor->BindSelfLuaProperties();
+        SelectedScriptFolder = SceneFolder;
+        SelectedScriptFile = CombinedFileName;
+        SyncScriptSelection(InSelectedActor);
+        return true;
+    }
+
+    InSelectedActor->SetUseScript(false);
+    if (ULuaScriptComponent* LuaComponent = InSelectedActor->GetLuaScriptComponent())
+    {
+        LuaComponent->SetScriptName("");
+    }
+    UE_LOG_WARNING("ActorDetailWidget: Failed to load Lua script: %s", RelativeScript.c_str());
+    SelectedScriptFile.clear();
+    SyncScriptSelection(InSelectedActor);
+    return false;
+}
+
+bool UActorDetailWidget::ApplySelectedScript(AActor* InSelectedActor)
+{
+    if (!InSelectedActor || SelectedScriptFolder.empty() || SelectedScriptFile.empty())
+    {
+        return false;
+    }
+
+    FString RelativeScript = "Scripts/" + SelectedScriptFolder + "/" + SelectedScriptFile;
+    InSelectedActor->SetUseScript(true);
+
+    bool bLoaded = false;
+    if (ULuaScriptComponent* LuaComponent = InSelectedActor->GetLuaScriptComponent())
+    {
+        LuaComponent->SetScriptName(RelativeScript);
+        bLoaded = LuaComponent->LoadScript();
+    }
+
+    if (bLoaded)
+    {
+        InSelectedActor->BindSelfLuaProperties();
+        SyncScriptSelection(InSelectedActor);
+        return true;
+    }
+
+    InSelectedActor->SetUseScript(false);
+    if (ULuaScriptComponent* LuaComponent = InSelectedActor->GetLuaScriptComponent())
+    {
+        LuaComponent->SetScriptName("");
+    }
+    UE_LOG_WARNING("ActorDetailWidget: Failed to load Lua script: %s", RelativeScript.c_str());
+    SelectedScriptFile.clear();
+    SyncScriptSelection(InSelectedActor);
+    return false;
+}
+
+std::filesystem::path UActorDetailWidget::GetScriptsRootPath() const
+{
+    std::filesystem::path base = UPathManager::GetInstance().GetRootPath();
+    std::filesystem::path search = base;
+
+    for (int32 i = 0; i < 5; ++i)
+    {
+        std::filesystem::path candidate = search / "Engine" / "Scripts";
+        if (std::filesystem::exists(candidate))
+        {
+            return candidate;
+        }
+
+        if (!search.has_parent_path())
+        {
+            break;
+        }
+        search = search.parent_path();
+    }
+
+    return base / "Engine" / "Scripts";
+}
+
+void UActorDetailWidget::SyncScriptSelection(AActor* InSelectedActor)
+{
+    SelectedScriptFolder.clear();
+    SelectedScriptFile.clear();
+
+    if (!InSelectedActor)
+    {
+        return;
+    }
+
+    FString ScriptPath = InSelectedActor->GetLuaScriptPathName();
+    if (ScriptPath.empty())
+    {
+        return;
+    }
+
+    std::replace(ScriptPath.begin(), ScriptPath.end(), '\\', '/');
+
+    const FString Prefix = "Scripts/";
+    if (ScriptPath.rfind(Prefix, 0) == 0)
+    {
+        ScriptPath = ScriptPath.substr(Prefix.length());
+    }
+
+    size_t SlashIndex = ScriptPath.find('/');
+    if (SlashIndex != FString::npos)
+    {
+        SelectedScriptFolder = ScriptPath.substr(0, SlashIndex);
+        SelectedScriptFile = ScriptPath.substr(SlashIndex + 1);
+    }
+    else
+    {
+        SelectedScriptFile = ScriptPath;
+    }
+}
+
+
+void UActorDetailWidget::EditLuaScript(const FString& ScriptPath)
+{
+    if (ScriptPath.empty())
+    {
+        return;
+    }
+
+    FString NormalizedPath = ScriptPath;
+    std::replace(NormalizedPath.begin(), NormalizedPath.end(), '\\', '/');
+
+    std::filesystem::path fullPath = std::filesystem::path(NormalizedPath);
+    if (!fullPath.is_absolute())
+    {
+        FString Relative = NormalizedPath;
+        const FString Prefix = "Scripts/";
+        if (Relative.rfind(Prefix, 0) == 0)
+        {
+            Relative = Relative.substr(Prefix.length());
+        }
+        fullPath = GetScriptsRootPath() / Relative;
+    }
+
+    if (!std::filesystem::exists(fullPath))
+    {
+        UE_LOG_WARNING("ActorDetailWidget: Lua script not found: %s", fullPath.string().c_str());
+#ifdef _WIN32
+        MessageBoxW(nullptr, L"Lua 스크립트 파일을 찾을 수 없습니다.", L"Error", MB_OK | MB_ICONERROR);
+#endif
+        return;
+    }
+
+#ifdef _WIN32
+    std::wstring WidePath = fullPath.wstring();
+    HINSTANCE hInst = ShellExecuteW(nullptr, L"open", WidePath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    if ((INT_PTR)hInst <= 32)
+    {
+        MessageBoxW(nullptr, L"파일 열기에 실패했습니다.", L"Error", MB_OK | MB_ICONERROR);
+    }
+#else
+    UE_LOG_WARNING("ActorDetailWidget: Edit Script is not supported on this platform.");
+#endif
+}
+
+
 void UActorDetailWidget::RenderComponents(AActor* InSelectedActor)
 {
 	if (!InSelectedActor) { return; }

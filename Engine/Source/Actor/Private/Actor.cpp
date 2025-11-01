@@ -387,6 +387,7 @@ UObject* AActor::Duplicate()
 {
 	AActor* Actor = Cast<AActor>(Super::Duplicate());
 	Actor->bCanEverTick = bCanEverTick;
+	Actor->bUseScript = bUseScript;
 	return Actor;
 }
 
@@ -407,6 +408,18 @@ void AActor::DuplicateSubObjects(UObject* DuplicatedObject)
 			NewComponent->SetOwner(DuplicatedActor);
 			DuplicatedActor->OwnedComponents.push_back(NewComponent);
 			OldToNewComponentMap[OldComponent] = NewComponent;
+
+			if (auto* OldLuaComp = Cast<ULuaScriptComponent>(OldComponent))
+			{
+				if (auto* NewLuaComp = Cast<ULuaScriptComponent>(NewComponent))
+				{
+					NewLuaComp->SetScriptName(OldLuaComp->GetScriptName());
+					if (OldLuaComp == LuaScriptComponent)
+					{
+						DuplicatedActor->LuaScriptComponent = NewLuaComp;
+					}
+				}
+			}
 		}
 	}
 
@@ -464,6 +477,18 @@ void AActor::DuplicateSubObjectsForEditor(UObject* DuplicatedObject)
 			NewComponent->SetOwner(DuplicatedActor);
 			DuplicatedActor->OwnedComponents.push_back(NewComponent);
 			OldToNewComponentMap[OldComponent] = NewComponent;
+
+			if (auto* OldLuaComp = Cast<ULuaScriptComponent>(OldComponent))
+			{
+				if (auto* NewLuaComp = Cast<ULuaScriptComponent>(NewComponent))
+				{
+					NewLuaComp->SetScriptName(OldLuaComp->GetScriptName());
+					if (OldLuaComp == LuaScriptComponent)
+					{
+						DuplicatedActor->LuaScriptComponent = NewLuaComp;
+					}
+				}
+			}
 		}
 	}
 
@@ -543,6 +568,23 @@ void AActor::EndPlay()
 	}
 }
 
+void AActor::SetUseScript(bool bInUseScript)
+{
+	bUseScript = bInUseScript;
+	if (bUseScript)
+	{
+		InitLuaScriptComponent();
+
+		// Enable Tick for Lua-scripted actors
+		// This allows Lua Tick() function to be called every frame
+		bCanEverTick = true;
+
+		// Enable Tick in editor mode so Lua scripts work in both editor and PIE
+		bTickInEditor = true;
+	}
+}
+
+
 void AActor::InitLuaScriptComponent()
 {
 	if (LuaScriptComponent == nullptr)
@@ -553,38 +595,38 @@ void AActor::InitLuaScriptComponent()
 
 bool AActor::BindSelfLuaProperties()
 {
-	std::cout << "[DEBUG] BindSelfLuaProperties: bUseScript=" << bUseScript << ", LuaScriptComponent=" << (LuaScriptComponent ? "valid" : "null") << std::endl;
-	
 	if (!bUseScript || !LuaScriptComponent)
 	{
-		std::cout << "[DEBUG] BindSelfLuaProperties: Early return (no script or component)" << std::endl;
 		return false;
 	}
-	
+
 	// Load Lua script
-	std::cout << "[DEBUG] BindSelfLuaProperties: Calling LoadScript()" << std::endl;
 	bool bLoadSuccess = LuaScriptComponent->LoadScript();
-	std::cout << "[DEBUG] BindSelfLuaProperties: LoadScript result = " << bLoadSuccess << std::endl;
-	
+
 	if (!bLoadSuccess)
 	{
 		return false;
 	}
-	
+
 	sol::table& LuaTable = LuaScriptComponent->GetLuaSelfTable();
-	std::cout << "[DEBUG] BindSelfLuaProperties: LuaTable valid = " << LuaTable.valid() << std::endl;
-	
+
 	if (!LuaTable.valid())
 	{
 		return false;
 	}
-	
+
 	// Bind this actor to Lua table
 	LuaTable["this"] = this;
 	LuaTable["Name"] = GetName().ToString();
-	
-	std::cout << "[DEBUG] BindSelfLuaProperties: Success!" << std::endl;
+
 	return true;
+}
+
+void AActor::PrintLocation() const
+{
+	//const FVector& Location = GetActorLocation();
+	//std::cout << "[Actor] " << GetName().ToString() << " Location: ("
+	//    << Location.X << ", " << Location.Y << ", " << Location.Z << ")" << std::endl;
 }
 
 FString AActor::GetLuaScriptPathName()

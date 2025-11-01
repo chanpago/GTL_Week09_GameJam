@@ -37,6 +37,7 @@ public:
     void ActivateFunction(const FString& FunctionName, Args&&... args);
     
     sol::table& GetLuaSelfTable() { return SelfTable; }
+    void SetScriptName(const FString& InScriptName);
 
 private:
     FString ScriptName;
