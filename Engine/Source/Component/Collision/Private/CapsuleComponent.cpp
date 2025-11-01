@@ -53,11 +53,12 @@ FVector UCapsuleComponent::GetUpVector() const
 
     const FMatrix& WorldMatrix = this->GetWorldTransformMatrix();
 
-    // 월드 변환 행렬의 Z축 벡터 추출 (열 우선: Data[row][col])
+    // 행벡터 시스템: 각 ROW가 basis vector
+    // Row 2 = Z축 (Up Vector)
     FVector UpVector(
-        WorldMatrix.Data[0][2],  // X component of Z-axis
-        WorldMatrix.Data[1][2],  // Y component of Z-axis
-        WorldMatrix.Data[2][2]   // Z component of Z-axis
+        WorldMatrix.Data[2][0],
+        WorldMatrix.Data[2][1],
+        WorldMatrix.Data[2][2]
     );
 
     return UpVector.GetNormalized();

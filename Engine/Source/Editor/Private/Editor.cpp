@@ -911,15 +911,18 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 		FVector2 TangentDir = FVector2(-DirectionToMousePos.Y, DirectionToMousePos.X);
 
 		// 각 축마다 TangentDir 방향 조정
-		if (Gizmo.GetGizmoDirection() == EGizmoDirection::Right)
+		// 모든 축에 대해 동일한 부호 보정 적용
+		if (Gizmo.GetGizmoDirection() == EGizmoDirection::Right ||
+		    Gizmo.GetGizmoDirection() == EGizmoDirection::Forward ||
+		    Gizmo.GetGizmoDirection() == EGizmoDirection::Up)
 		{
 			TangentDir = -TangentDir;
 		}
 
-		// 스크린 공간 드래그 벡터 (UE5 표준: Y축 반전)
+		// 스크린 공간 드래그 벡터
 		const FVector2 PrevScreenPos = Gizmo.GetPreviousScreenPos();
 		const FVector2 DragDelta = CurrentScreenPos - PrevScreenPos;
-		const FVector2 DragDir = FVector2(DragDelta.X, -DragDelta.Y); // Y축 반전
+		const FVector2 DragDir = FVector2(DragDelta.X, DragDelta.Y);
 
 		// 마우스가 실제로 움직였는지 체크
 		const float DragDistSq = DragDir.LengthSquared();
@@ -934,6 +937,15 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 			constexpr float PixelsToDegrees = 1.0f;
 			float DeltaAngleDegrees = PixelDelta * PixelsToDegrees;
 			float DeltaAngle = FVector::GetDegreeToRadian(DeltaAngleDegrees);
+
+			// 카메라 시점 방향에 따른 회전 방향 보정
+			// 카메라가 회전축의 반대편에 있으면 부호 반전
+			const FVector CamToGizmo = (GizmoLocation - InActiveCamera->GetLocation()).GetNormalized();
+			const float AxisDotCam = WorldRotationAxis.Dot(CamToGizmo);
+			if (AxisDotCam < 0.0f)
+			{
+				DeltaAngle = -DeltaAngle;
+			}
 
 			// 누적 각도 업데이트
 			float NewAngle = Gizmo.GetCurrentRotationAngle() + DeltaAngle;

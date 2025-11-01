@@ -146,6 +146,8 @@ const FMatrix& USceneComponent::GetWorldTransformMatrix() const
 
 		if (AttachParent)
 		{
+			// Row-vector 시스템 (V * M): V * Local * Parent 순서
+			// Local 변환 먼저, 그 다음 Parent 변환
 			WorldTransformMatrix *= AttachParent->GetWorldTransformMatrix();
 		}
 
@@ -159,6 +161,7 @@ const FMatrix& USceneComponent::GetWorldTransformMatrixInverse() const
 {
 	if (bIsTransformDirtyInverse)
 	{
+		// (Local * Parent)^-1 = Parent^-1 * Local^-1
 		WorldTransformMatrixInverse = FMatrix::Identity();
 
 		if (AttachParent)
@@ -183,7 +186,10 @@ FQuaternion USceneComponent::GetWorldRotationAsQuaternion() const
 {
     if (AttachParent)
     {
-        return RelativeRotation * AttachParent->GetWorldRotationAsQuaternion();
+        // 쿼터니언 곱셈 q1*q2는 "q2 먼저, q1 나중"
+        // 행벡터 행렬: World = Local * Parent (Local 먼저, Parent 나중)
+        // 쿼터니언: World = Parent * Local (순서 반대!)
+        return AttachParent->GetWorldRotationAsQuaternion() * RelativeRotation;
     }
     return RelativeRotation;
 }
@@ -217,7 +223,8 @@ void USceneComponent::SetWorldRotation(const FVector& NewRotation)
     if (AttachParent)
     {
         FQuaternion ParentWorldRotationQuat = AttachParent->GetWorldRotationAsQuaternion();
-        SetRelativeRotation(NewWorldRotationQuat * ParentWorldRotationQuat.Inverse());
+        // World = Parent * Local → Local = Parent^-1 * World
+        SetRelativeRotation(ParentWorldRotationQuat.Inverse() * NewWorldRotationQuat);
     }
     else
     {
@@ -230,7 +237,8 @@ void USceneComponent::SetWorldRotation(const FQuaternion& NewRotation)
 	if (AttachParent)
 	{
 		FQuaternion ParentWorldRotationQuat = AttachParent->GetWorldRotationAsQuaternion();
-		SetRelativeRotation(NewRotation * ParentWorldRotationQuat.Inverse());
+		// World = Parent * Local → Local = Parent^-1 * World
+		SetRelativeRotation(ParentWorldRotationQuat.Inverse() * NewRotation);
 	}
 	else
 	{

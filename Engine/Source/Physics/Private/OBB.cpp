@@ -13,7 +13,7 @@ bool FOBB::Intersects(const FAABB& Other) const
 
 bool FOBB::Intersects(const FOBB& Other) const
 {
-    // 로컬 축 추출
+    // 로컬 축 추출 (행벡터 시스템: 각 ROW가 basis vector)
     const FVector AxisLhs[] = {
         FVector(ScaleRotation.Data[0][0], ScaleRotation.Data[0][1], ScaleRotation.Data[0][2]),
         FVector(ScaleRotation.Data[1][0], ScaleRotation.Data[1][1], ScaleRotation.Data[1][2]),

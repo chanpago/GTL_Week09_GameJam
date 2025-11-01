@@ -1220,11 +1220,11 @@ void UActorDetailWidget::RenderTransformEdit()
 		cachedRotation.Z = RotArray[2];
 		if (bShowWorldRotation)
 		{
-			SceneComponent->SetWorldRotationPreservingChildren(cachedRotation);
+			SceneComponent->SetWorldRotation(cachedRotation);
 		}
 		else
 		{
-			SceneComponent->SetRelativeRotationPreservingChildren(FQuaternion::FromEuler(cachedRotation));
+			SceneComponent->SetRelativeRotation(FQuaternion::FromEuler(cachedRotation));
 		}
 	}
 

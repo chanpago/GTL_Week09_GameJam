@@ -123,10 +123,10 @@ namespace CollisionUtil
         // OBB의 로컬 좌표계로 변환
         FVector LocalPoint = Point - OBB.Center;
 
-        // OBB의 3개 축 추출
-        FVector AxisX(OBB.ScaleRotation.Data[0][0], OBB.ScaleRotation.Data[1][0], OBB.ScaleRotation.Data[2][0]);
-        FVector AxisY(OBB.ScaleRotation.Data[0][1], OBB.ScaleRotation.Data[1][1], OBB.ScaleRotation.Data[2][1]);
-        FVector AxisZ(OBB.ScaleRotation.Data[0][2], OBB.ScaleRotation.Data[1][2], OBB.ScaleRotation.Data[2][2]);
+        // OBB의 3개 축 추출 (행벡터 시스템: 각 ROW가 basis vector)
+        FVector AxisX(OBB.ScaleRotation.Data[0][0], OBB.ScaleRotation.Data[0][1], OBB.ScaleRotation.Data[0][2]);
+        FVector AxisY(OBB.ScaleRotation.Data[1][0], OBB.ScaleRotation.Data[1][1], OBB.ScaleRotation.Data[1][2]);
+        FVector AxisZ(OBB.ScaleRotation.Data[2][0], OBB.ScaleRotation.Data[2][1], OBB.ScaleRotation.Data[2][2]);
 
         // 각 축에 투영하여 로컬 좌표 계산
         float ProjectionX = LocalPoint.Dot(AxisX);
@@ -373,10 +373,10 @@ namespace CollisionUtil
   */
     inline float DistanceSegmentToOBB_Exact(const FVector& SegmentStart, const FVector& SegmentEnd, const FOBB& OBB)
     {
-        // OBB의 3개 축 추출 (열 우선)
-        FVector AxisX(OBB.ScaleRotation.Data[0][0], OBB.ScaleRotation.Data[1][0], OBB.ScaleRotation.Data[2][0]);
-        FVector AxisY(OBB.ScaleRotation.Data[0][1], OBB.ScaleRotation.Data[1][1], OBB.ScaleRotation.Data[2][1]);
-        FVector AxisZ(OBB.ScaleRotation.Data[0][2], OBB.ScaleRotation.Data[1][2], OBB.ScaleRotation.Data[2][2]);
+        // OBB의 3개 축 추출 (행벡터 시스템: 각 ROW가 basis vector)
+        FVector AxisX(OBB.ScaleRotation.Data[0][0], OBB.ScaleRotation.Data[0][1], OBB.ScaleRotation.Data[0][2]);
+        FVector AxisY(OBB.ScaleRotation.Data[1][0], OBB.ScaleRotation.Data[1][1], OBB.ScaleRotation.Data[1][2]);
+        FVector AxisZ(OBB.ScaleRotation.Data[2][0], OBB.ScaleRotation.Data[2][1], OBB.ScaleRotation.Data[2][2]);
 
         AxisX.Normalize();
         AxisY.Normalize();
@@ -687,10 +687,10 @@ namespace CollisionUtil
         // Box의 월드 변환 행렬
         const FMatrix& BoxTransform = Box->GetWorldTransformMatrix();
 
-        // Box 로컬 축 추출 (행렬의 열)
-        FVector BoxAxisX = FVector(BoxTransform.Data[0][0], BoxTransform.Data[1][0], BoxTransform.Data[2][0]);
-        FVector BoxAxisY = FVector(BoxTransform.Data[0][1], BoxTransform.Data[1][1], BoxTransform.Data[2][1]);
-        FVector BoxAxisZ = FVector(BoxTransform.Data[0][2], BoxTransform.Data[1][2], BoxTransform.Data[2][2]);
+        // Box 로컬 축 추출 (행벡터 시스템: 각 ROW가 basis vector)
+        FVector BoxAxisX = FVector(BoxTransform.Data[0][0], BoxTransform.Data[0][1], BoxTransform.Data[0][2]);
+        FVector BoxAxisY = FVector(BoxTransform.Data[1][0], BoxTransform.Data[1][1], BoxTransform.Data[1][2]);
+        FVector BoxAxisZ = FVector(BoxTransform.Data[2][0], BoxTransform.Data[2][1], BoxTransform.Data[2][2]);
 
         // Sphere 중심을 Box 중심 기준 상대 위치로
         FVector RelativePos = SphereCenter - BoxCenter;
