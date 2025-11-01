@@ -141,7 +141,7 @@ void FClientApp::UpdateSystem() const
 	}
 	{
 		TIME_PROFILE(LuaManager) // LuaManager 업데이트 프로파일링
-		LuaManager.Tick(TimeManager.GetDeltaTime());
+		LuaManager.Tick(DT);
 	}
 	{
 		TIME_PROFILE(UIManager)

@@ -1,6 +1,8 @@
 #pragma once
 #include "Widget.h"
 
+#include <filesystem>
+
 class AActor;
 class UActorComponent;
 class USceneComponent;
@@ -36,6 +38,9 @@ private:
 	bool bShowWorldLocation = false;
 	bool bShowWorldRotation = false;
 
+	FString SelectedScriptFolder;
+	FString SelectedScriptFile;
+
 	// Helper functions
 	void RenderActorHeader(AActor* InSelectedActor);
 	void RenderComponents(AActor* InSelectedActor);
@@ -47,7 +52,13 @@ private:
 	void RenderTransformEdit();
 	void SwapComponents(UActorComponent* A, UActorComponent* B);
 
+	bool CreateLuaScriptForActor(AActor* InSelectedActor);
+	void EditLuaScript(const FString& ScriptPath);
+	bool ApplySelectedScript(AActor* InSelectedActor);
 	void DecomposeMatrix(const FMatrix& InMatrix, FVector& OutLocation, FVector& OutRotation, FVector& OutScale);
+
+	std::filesystem::path GetScriptsRootPath() const;
+	void SyncScriptSelection(AActor* InSelectedActor);
 
 	// 이름 변경 함수
 	void StartRenamingActor(AActor* InActor);
