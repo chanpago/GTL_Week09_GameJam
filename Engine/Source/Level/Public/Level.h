@@ -12,6 +12,7 @@ class UPrimitiveComponent;
 class UPointLightComponent;
 class ULightComponent;
 class FOctree;
+class UShapeComponent;
 
 UCLASS()
 class ULevel : public UObject
@@ -125,4 +126,12 @@ public:
 
 private:
 	TArray<ULightComponent*> LightComponents;
+
+	/*-----------------------------------------------------------------------------
+		Collision Management
+	-----------------------------------------------------------------------------*/
+public:
+	const TArray<UShapeComponent*>& GetShapeComponents() const { return ShapeComponents; }
+private:
+	TArray<UShapeComponent*> ShapeComponents;
 };

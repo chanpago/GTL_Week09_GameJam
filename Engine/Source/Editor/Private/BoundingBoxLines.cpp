@@ -3,7 +3,7 @@
 #include "Physics/Public/AABB.h"
 #include "Physics/Public/OBB.h"
 #include "Physics/Public/BoundingSphere.h"
-
+#include "Physics/Public/BoundingCapsule.h"
 UBoundingBoxLines::UBoundingBoxLines()
 	: Vertices(TArray<FVector>()),
 	BoundingBoxLineIdx{
@@ -259,6 +259,174 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 
 		break;
 	}
+	case EBoundingVolumeType::Capsule:
+	{
+		const FCapsuleVolume* Capsule = static_cast<const FCapsuleVolume*>(NewBoundingVolume);
+
+		const FVector Center = Capsule->Center;
+		const FVector Axis = Capsule->Axis.GetNormalized();   // 축 방향(정규화)
+		const float HalfHeight = Capsule->CapsuleHalfHeight;  // 원기둥 절반 높이
+		const float Radius = Capsule->CapsuleRadius;          // 반지름
+
+		// Axis에 직교하는 기저(Tangent, Bitangent) 구성
+		FVector Tangent;
+		if (std::abs(Axis.Z) < 0.999f)
+		{
+			Tangent = FVector::UnitZ().Cross(Axis).GetNormalized();
+		}
+		else
+		{
+			Tangent = FVector::UnitX().Cross(Axis).GetNormalized();
+		}
+		const FVector Bitangent = Axis.Cross(Tangent).GetNormalized();
+
+		// 상/하 “림” 중심(원기둥과 반구 접합 원의 중심)
+		const FVector TopCenter = Center + Axis * HalfHeight;
+		const FVector BottomCenter = Center - Axis * HalfHeight;
+
+		// 세그먼트 설정
+		const uint32 NumSegments = 40;      // 원 둘레
+		const uint32 NumSemiSegments = 40;  // 반구 반원
+
+		// 버텍스 레이아웃
+		const uint32 TopCircleBase = 0;
+		const uint32 BottomCircleBase = TopCircleBase + NumSegments;
+		const uint32 TangentTopSemiBase = BottomCircleBase + NumSegments;
+		const uint32 TangentBottomSemiBase = TangentTopSemiBase + (NumSemiSegments + 1);
+		const uint32 BitangentTopSemiBase = TangentBottomSemiBase + (NumSemiSegments + 1);
+		const uint32 BitangentBottomSemiBase = BitangentTopSemiBase + (NumSemiSegments + 1);
+
+		CapsuleVertices = 2 * NumSegments + 4 * (NumSemiSegments + 1);
+		CurrentType = EBoundingVolumeType::Capsule;
+		CurrentNumVertices = CapsuleVertices;
+		Vertices.resize(CapsuleVertices);
+
+		// 1) 위/아래 림(원)
+		for (uint32 Segment = 0; Segment < NumSegments; ++Segment)
+		{
+			const float Theta = (2.0f * PI) * (static_cast<float>(Segment) / static_cast<float>(NumSegments));
+			const FVector Offset = (std::cos(Theta) * Tangent + std::sin(Theta) * Bitangent) * Radius;
+
+			Vertices[TopCircleBase + Segment] = TopCenter + Offset;
+			Vertices[BottomCircleBase + Segment] = BottomCenter + Offset;
+		}
+
+		// 2) Tangent-Plane: 상반구(위로 볼록)
+		for (uint32 S = 0; S <= NumSemiSegments; ++S)
+		{
+			const float Theta = (PI) * (static_cast<float>(S) / static_cast<float>(NumSemiSegments));
+			Vertices[TangentTopSemiBase + S] =
+				TopCenter + Tangent * (std::cos(Theta) * Radius) + Axis * (std::sin(Theta) * Radius);
+		}
+
+		// 3) Tangent-Plane: 하반구(아래로 볼록)
+		for (uint32 S = 0; S <= NumSemiSegments; ++S)
+		{
+			const float Theta = (PI) * (static_cast<float>(S) / static_cast<float>(NumSemiSegments));
+			Vertices[TangentBottomSemiBase + S] =
+				BottomCenter + Tangent * (std::cos(Theta) * Radius) - Axis * (std::sin(Theta) * Radius);
+		}
+
+		// 4) Bitangent-Plane: 상반구
+		for (uint32 S = 0; S <= NumSemiSegments; ++S)
+		{
+			const float Theta = (PI) * (static_cast<float>(S) / static_cast<float>(NumSemiSegments));
+			Vertices[BitangentTopSemiBase + S] =
+				TopCenter + Bitangent * (std::cos(Theta) * Radius) + Axis * (std::sin(Theta) * Radius);
+		}
+
+		// 5) Bitangent-Plane: 하반구
+		for (uint32 S = 0; S <= NumSemiSegments; ++S)
+		{
+			const float Theta = (PI) * (static_cast<float>(S) / static_cast<float>(NumSemiSegments));
+			Vertices[BitangentBottomSemiBase + S] =
+				BottomCenter + Bitangent * (std::cos(Theta) * Radius) - Axis * (std::sin(Theta) * Radius);
+		}
+
+		// 인덱스: 원(2개) + 반원(4개). 서로 “이어붙이지 않고” 각 세그먼트 내부만 연결.
+		CapsuleLineIdx.clear();
+
+		// Top Rim
+		for (uint32 Segment = 0; Segment < NumSegments; ++Segment)
+		{
+			const int32 A = static_cast<int32>(TopCircleBase + Segment);
+			const int32 B = static_cast<int32>(TopCircleBase + ((Segment + 1) % NumSegments));
+			CapsuleLineIdx.emplace_back(A);
+			CapsuleLineIdx.emplace_back(B);
+		}
+
+		// Bottom Rim
+		for (uint32 Segment = 0; Segment < NumSegments; ++Segment)
+		{
+			const int32 A = static_cast<int32>(BottomCircleBase + Segment);
+			const int32 B = static_cast<int32>(BottomCircleBase + ((Segment + 1) % NumSegments));
+			CapsuleLineIdx.emplace_back(A);
+			CapsuleLineIdx.emplace_back(B);
+		}
+
+		// Tangent Top Semicircle
+		for (uint32 S = 0; S < NumSemiSegments; ++S)
+		{
+			CapsuleLineIdx.emplace_back(static_cast<int32>(TangentTopSemiBase + S));
+			CapsuleLineIdx.emplace_back(static_cast<int32>(TangentTopSemiBase + S + 1));
+		}
+
+		// Tangent Bottom Semicircle
+		for (uint32 S = 0; S < NumSemiSegments; ++S)
+		{
+			CapsuleLineIdx.emplace_back(static_cast<int32>(TangentBottomSemiBase + S));
+			CapsuleLineIdx.emplace_back(static_cast<int32>(TangentBottomSemiBase + S + 1));
+		}
+
+		// Bitangent Top Semicircle
+		for (uint32 S = 0; S < NumSemiSegments; ++S)
+		{
+			CapsuleLineIdx.emplace_back(static_cast<int32>(BitangentTopSemiBase + S));
+			CapsuleLineIdx.emplace_back(static_cast<int32>(BitangentTopSemiBase + S + 1));
+		}
+
+		// Bitangent Bottom Semicircle
+		for (uint32 S = 0; S < NumSemiSegments; ++S)
+		{
+			CapsuleLineIdx.emplace_back(static_cast<int32>(BitangentBottomSemiBase + S));
+			CapsuleLineIdx.emplace_back(static_cast<int32>(BitangentBottomSemiBase + S + 1));
+		}
+		// 5) 옆라인 2개(±Tangent 방향)
+		//    Top Rim에서 Tangent + 방향 점: Segment=0 (Theta=0)
+		//    Tangent - 방향 점: Segment=NumSegments/2 (Theta=π)
+		const int32 TopTPlusIndex = static_cast<int32>(TopCircleBase + 0);
+		const int32 BottomTPlusIndex = static_cast<int32>(BottomCircleBase + 0);
+		const int32 TopTMinusIndex = static_cast<int32>(TopCircleBase + (NumSegments / 2));
+		const int32 BottomTMinusIndex = static_cast<int32>(BottomCircleBase + (NumSegments / 2));
+
+		// 5) 옆라인 2개(±BiTangent 방향)
+		//    Top Rim에서 BiTangent + 방향 점: Segment=0 (Theta=0)
+		//    BiTangent - 방향 점: Segment=NumSegments/2 (Theta=π)
+		// +B 세그먼트 라인 (세그먼트 1/4 지점: Theta = PI/2)
+		const int32 TopBPlusIndex = static_cast<int32>(TopCircleBase + (NumSegments / 4));
+		const int32 BottomBPlusIndex = static_cast<int32>(BottomCircleBase + (NumSegments / 4));
+
+		// -B 세그먼트 라인 (세그먼트 3/4 지점: Theta = 3PI/2)
+		const int32 TopBMinusIndex = static_cast<int32>(TopCircleBase + (3 * NumSegments / 4));
+		const int32 BottomBMinusIndex = static_cast<int32>(BottomCircleBase + (3 * NumSegments / 4));
+
+		// +T 세그먼트 라인
+		CapsuleLineIdx.emplace_back(TopTPlusIndex);
+		CapsuleLineIdx.emplace_back(BottomTPlusIndex);
+
+		// -T 세그먼트 라인
+		CapsuleLineIdx.emplace_back(TopTMinusIndex);
+		CapsuleLineIdx.emplace_back(BottomTMinusIndex);
+
+		CapsuleLineIdx.emplace_back(TopBPlusIndex);
+		CapsuleLineIdx.emplace_back(BottomBPlusIndex);
+
+		CapsuleLineIdx.emplace_back(TopBMinusIndex);
+		CapsuleLineIdx.emplace_back(BottomBMinusIndex);
+
+		break;
+
+	}
 	default:
 		break;
 	}
@@ -366,6 +534,10 @@ int32* UBoundingBoxLines::GetIndices(EBoundingVolumeType BoundingVolumeType)
 	{
 		return SphereLineIdx;
 	}
+	case EBoundingVolumeType::Capsule:
+	{
+		return CapsuleLineIdx.empty() ? nullptr : CapsuleLineIdx.data();
+	}
 	default:
 		break;
 	}
@@ -385,6 +557,8 @@ uint32 UBoundingBoxLines::GetNumIndices(EBoundingVolumeType BoundingVolumeType) 
 		return static_cast<uint32>(SpotLightLineIdx.size());
 	case EBoundingVolumeType::Sphere:
 		return 360;
+	case EBoundingVolumeType::Capsule:
+		return static_cast<uint32>(CapsuleLineIdx.size());
 	default:
 		break;
 	}

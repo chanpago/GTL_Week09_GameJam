@@ -4,6 +4,7 @@
 
 namespace json { class JSON; }
 using JSON = json::JSON;
+struct FObjectSlot;
 
 UCLASS()
 class UObject
@@ -31,6 +32,7 @@ public:
 	uint64 GetAllocatedBytes() const { return AllocatedBytes; }
 	uint32 GetAllocatedCount() const { return AllocatedCounts; }
 	uint32 GetUUID() const { return UUID; }
+	uint32 GetInternalIndex() const { return InternalIndex; }
 
 	FName GetName() { return Name; }
 	void SetName(const FName& InName) { Name = InName; }
@@ -41,6 +43,9 @@ public:
 
 	virtual UObject* Duplicate();
 	virtual UObject* DuplicateForEditor();
+
+public:
+	static uint32 GlobalSerialCounter;
 
 protected:
 	virtual void DuplicateSubObjects(UObject* DuplicatedObject);
@@ -193,3 +198,5 @@ bool IsValid(const UObject* InObject)
 }
 
 TArray<UObject*>& GetUObjectArray();
+TArray<FObjectSlot>& GetUObjectSlotArray();
+

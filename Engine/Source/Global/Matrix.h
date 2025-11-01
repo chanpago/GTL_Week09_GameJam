@@ -81,6 +81,7 @@ struct FMatrix
 	* @brief Rotation의 정보를 행렬로 변환하여 제공하는 함수
 	*/
 	static FMatrix RotationMatrix(const FVector& InOtherVector);
+	static FMatrix RotationMatrix(const FQuaternion& InOtherQuaternion);
 
 	static FMatrix CreateFromYawPitchRoll(const float yaw, const float pitch, const float roll);
 

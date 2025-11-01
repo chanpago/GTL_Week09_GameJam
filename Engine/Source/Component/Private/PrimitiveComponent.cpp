@@ -5,6 +5,15 @@
 #include "Physics/Public/AABB.h"
 #include "Physics/Public/OBB.h"
 #include "Utility/Public/JsonSerializer.h"
+#include "Actor/Public/Actor.h"
+#include "Core/Public/Object.h"
+#include "Level/Public/Level.h"
+#include "Component/Collision/Public/ShapeComponent.h"
+#include "Component/Collision/Public/BoxComponent.h"
+#include "Component/Collision/Public/SphereComponent.h"
+#include "Component/Collision/Public/CapsuleComponent.h"
+#include "Physics/Public/BoundingSphere.h"
+#include "Physics/Public/BoundingCapsule.h"
 
 IMPLEMENT_ABSTRACT_CLASS(UPrimitiveComponent, USceneComponent)
 
@@ -16,6 +25,7 @@ UPrimitiveComponent::UPrimitiveComponent()
 void UPrimitiveComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+	UpdateOverlaps();
 }
 void UPrimitiveComponent::OnSelected()
 {
@@ -130,7 +140,7 @@ void UPrimitiveComponent::GetWorldAABB(FVector& OutMin, FVector& OutMax)
 
 			CachedWorldMin = AABB.Min;
 			CachedWorldMax = AABB.Max;
-       }
+		}
 
 		bIsAABBCacheDirty = false;
 	}
@@ -192,4 +202,117 @@ void UPrimitiveComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		InOutHandle["bVisible"] = bVisible ? "true" : "false";
 	}
 
+}
+
+/* =========================
+ *	Collision Section
+   ========================= */
+
+/*	
+	현재는 AABB 기반의 단순 충돌입니다.
+	OBB는 GetWorldAABB에서 월드 AABB로 변환되므로 그대로 동작합니다. 
+	스피어/캡슐은 AABB 근사로 처리합니다.
+*/
+bool UPrimitiveComponent::IsOverlappingComponent(const UPrimitiveComponent* Other) const
+{
+	if (Other == nullptr || Other == this)
+	{
+		return false;
+	}
+
+	FVector ThisMin, ThisMax;
+	FVector OtherMin, OtherMax;
+
+	/* 
+		const_cast는 포인터 또는 ref의 const를 잠깐 제거해주는데 사용함.
+		- GetWorldAABB가 const 함수가 아니기 때문에 사용
+		- 함수 포인터에는 사용 불가능
+	*/
+	const_cast<UPrimitiveComponent*>(this)->GetWorldAABB(ThisMin, ThisMax);
+	const_cast<UPrimitiveComponent*>(Other)->GetWorldAABB(OtherMin, OtherMax);
+
+	FAABB ThisAABB(ThisMin, ThisMax);
+	FAABB OtherAABB(OtherMin, OtherMax);
+	return ThisAABB.IsIntersected(OtherAABB);
+}
+
+
+bool UPrimitiveComponent::IsOverlappingActor(const AActor* Other) const
+{
+	if (Other == nullptr)
+	{
+		return false;
+	}
+
+	// 전역 UObject 배열을 순회해 Other 액터의 프리미티브 컴포넌트만 골라서 판정
+	const TArray<UObject*>& Objects = GetUObjectArray();
+	for (UObject* Obj : Objects)
+	{
+		if (UPrimitiveComponent* OtherPrim = Cast<UPrimitiveComponent>(Obj))
+		{
+			if (OtherPrim == nullptr || OtherPrim == this)
+			{
+				continue;
+			}
+			if (OtherPrim->GetOwner() != Other)
+			{
+				continue;
+			}
+			if (IsOverlappingComponent(OtherPrim))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void UPrimitiveComponent::UpdateOverlaps()
+{
+	OverlapInfos.clear();
+
+	if (!bGenerateOverlapEvents)
+	{
+		return;
+	}
+
+	AActor* ThisOwner = GetOwner();
+	const TArray<UObject*>& Objects = GetUObjectArray();
+
+	FVector ThisMin, ThisMax;
+	GetWorldAABB(ThisMin, ThisMax);
+	FAABB ThisAABB(ThisMin, ThisMax);
+
+	for (UObject* Obj : Objects)
+	{
+		UPrimitiveComponent* OtherPrim = Cast<UPrimitiveComponent>(Obj);
+		if (OtherPrim == nullptr || OtherPrim == this)
+		{
+			continue;
+		}
+
+		// Owner가 없는 프리미티브는 스킵
+		if (OtherPrim->GetOwner() == nullptr)
+		{
+			continue;
+		}
+
+		// 같은 액터 내부끼리는 스킵(필요 시 제거 가능)
+		if (ThisOwner != nullptr && OtherPrim->GetOwner() == ThisOwner)
+		{
+			continue;
+		}
+
+		FVector OtherMin, OtherMax;
+		OtherPrim->GetWorldAABB(OtherMin, OtherMax);
+
+		FAABB OtherAABB(OtherMin, OtherMax);
+		if (ThisAABB.IsIntersected(OtherAABB))
+		{
+			FOverlapInfo Info;
+			Info.OtherComponent = OtherPrim;
+			Info.OtherActor = OtherPrim->GetOwner();
+			OverlapInfos.push_back(Info);
+		}
+	}
 }

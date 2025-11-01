@@ -29,6 +29,23 @@ FVector::FVector(const FVector& InOther)
 {
 }
 
+FVector::FVector(const FVector4& InOther)
+	: X(InOther.X), Y(InOther.Y), Z(InOther.Z)
+{
+}
+
+// 동차좌표 → 3D 변환 (W 분할)
+FVector FVector::FromHomogeneous(const FVector4& InOther)
+{
+	const float W = InOther.W;
+	if (fabsf(W) > 1e-6f)
+	{
+		return FVector(InOther.X / W, InOther.Y / W, InOther.Z / W);
+	}
+	// W가 0에 가까우면 분모 방지: XYZ만 사용
+	return FVector(InOther.X, InOther.Y, InOther.Z);
+}
+
 void FVector::operator=(const FVector4& InOther)
 {
 	*this = FVector(InOther.X, InOther.Y, InOther.Z);

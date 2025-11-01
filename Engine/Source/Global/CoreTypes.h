@@ -195,3 +195,10 @@ struct FGlobalLightConstant
 	FAmbientLightInfo Ambient;
 	FDirectionalLightInfo Directional;
 };
+
+// UObject 생존 여부 검사용 구조체
+struct FObjectSlot
+{
+	uint32 SerialNumber = 0;
+	bool bIsAlive = false;
+};

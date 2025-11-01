@@ -633,3 +633,27 @@ FString AActor::GetLuaScriptPathName()
 {
 	return LuaScriptComponent ? LuaScriptComponent->GetScriptName() : FString("");
 }
+/* =========================
+ *	Collision Section
+   ========================= */
+
+bool AActor::IsOverlappingActor(const AActor* Other) const
+{
+	if (Other == nullptr || Other == this)
+	{
+		return false;
+	}
+
+	for (UActorComponent* OwnedComp : OwnedComponents)
+	{
+		if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(OwnedComp))
+		{
+			if (PrimComp->IsOverlappingActor(Other))
+			{
+				// found one, finished
+				return true;
+			}
+		}
+	}
+	return false;
+}
