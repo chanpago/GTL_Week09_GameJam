@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Component/Public/ULuaScriptComponent.h"
 #include "Manager/Lua/Public/LuaScriptManager.h"
+#include "Manager/Coroutine/Public/LuaCoroutineManager.h"
 #include "Actor/Public/Actor.h"
 #include "Utility/Public/JsonSerializer.h"
 
@@ -49,20 +50,31 @@ void ULuaScriptComponent::DuplicateSubObjects(UObject* DuplicatedObject)
 void ULuaScriptComponent::BeginPlay()
 {
     Super::BeginPlay();
-    
+
+    // Safety check: Ensure we have a valid owner
+    AActor* Owner = GetOwner();
+    if (!Owner)
+    {
+        std::cerr << "[ERROR] ULuaScriptComponent::BeginPlay: No owner!" << std::endl;
+        return;
+    }
+
     if (ScriptName.empty())
     {
-        FString ClassName = GetOwner() ? GetOwner()->GetClass()->GetName().ToString() : FString("Actor");
+        FString ClassName = Owner->GetClass()->GetName().ToString();
         ScriptName = "Scripts/DefaultLevel/" + ClassName + ".lua";
     }
-    
+
     // Load script first
-    LoadScript();
-    
-    // Register with LuaScriptManager
+    if (!LoadScript())
+    {
+        std::cerr << "[ERROR] ULuaScriptComponent::BeginPlay: Failed to load script: " << ScriptName << std::endl;
+        return;
+    }
+
+    // Register with LuaScriptManager for hot-reload tracking
     FLuaScriptManager::GetInstance().RegisterComponent(this);
-    std::cout << "[DEBUG] ULuaScriptComponent::BeginPlay: Registered with LuaScriptManager" << std::endl;
-    
+
     if (SelfTable.valid() && SelfTable["BeginPlay"].valid())
     {
         ActivateFunction("BeginPlay");
@@ -72,32 +84,58 @@ void ULuaScriptComponent::BeginPlay()
 void ULuaScriptComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
-    
-    std::cout << "[DEBUG] ULuaScriptComponent::TickComponent: DeltaTime = " << DeltaTime << std::endl;
-    
-    if (SelfTable.valid() && SelfTable["Tick"].valid())
+
+    // Safety check: Only tick if we have a valid owner
+    AActor* Owner = GetOwner();
+    if (!Owner || !SelfTable.valid() || !SelfTable["Tick"].valid())
     {
-        std::cout << "[DEBUG] ULuaScriptComponent::TickComponent: Calling Lua Tick" << std::endl;
-        ActivateFunction("Tick", DeltaTime);
+        return;
     }
-    else
+
+    // Additional safety: Only tick if the actor has begun play
+    // This prevents ticking during shutdown
+    if (!Owner->HasBegunPlay())
     {
-        std::cout << "[DEBUG] ULuaScriptComponent::TickComponent: SelfTable or Tick function not valid" << std::endl;
+        return;
     }
+
+    ActivateFunction("Tick", DeltaTime);
 }
 
 void ULuaScriptComponent::EndPlay()
 {
     Super::EndPlay();
-    
-    if (SelfTable.valid() && SelfTable["EndPlay"].valid())
+
+    // FIRST: Invalidate the actor reference in Lua to prevent access
+    if (SelfTable.valid())
     {
-        ActivateFunction("EndPlay");
+        SelfTable["this"] = sol::nil;  // ✅ 먼저 Actor 포인터 무효화!
+
+        if (SelfTable["EndPlay"].valid())
+        {
+            ActivateFunction("EndPlay");
+        }
     }
-    
+
+    // Stop all coroutines started by this component
+    for (int coroutineID : ActiveCoroutineIDs)
+    {
+        std::cout << "[Component] Stopping coroutine " << coroutineID << " (EndPlay)" << std::endl;
+        FLuaCoroutineManager::GetInstance().StopCoroutine(coroutineID);
+    }
+    ActiveCoroutineIDs.clear();
+
     // Unregister from LuaScriptManager
     FLuaScriptManager::GetInstance().UnregisterComponent(this);
-    std::cout << "[DEBUG] ULuaScriptComponent::EndPlay: Unregistered from LuaScriptManager" << std::endl;
+
+    // Invalidate the Lua table to prevent any further access
+    SelfTable = sol::nil;
+}
+
+void ULuaScriptComponent::SetScriptName(const FString& InScriptName)
+{
+    ScriptName = InScriptName;
+    SelfTable = sol::table();
 }
 
 bool ULuaScriptComponent::LoadScript()
@@ -106,32 +144,29 @@ bool ULuaScriptComponent::LoadScript()
     {
         FString ClassName = GetOwner() ? GetOwner()->GetClass()->GetName().ToString() : FString("Actor");
         ScriptName = "Scripts/DefaultLevel/" + ClassName + ".lua";
-        std::cout << "[DEBUG] LoadScript: ScriptName = " << ScriptName << std::endl;
     }
-    else
-    {
-        std::cout << "[DEBUG] LoadScript: Using existing ScriptName = " << ScriptName << std::endl;
-    }
-    
+
     // Load from LuaScriptManager
     SelfTable = FLuaScriptManager::GetInstance().CreateLuaTable(ScriptName);
-    
-    std::cout << "[DEBUG] LoadScript: SelfTable.valid() = " << SelfTable.valid() << std::endl;
-    
+
     if (!SelfTable.valid())
     {
-        std::cout << "[DEBUG] LoadScript: Failed to load script!" << std::endl;
+        std::cerr << "[ERROR] LoadScript: Failed to load script: " << ScriptName << std::endl;
         return false;
     }
-    
+
     // Bind self.this to the owning Actor
     AActor* Owner = GetOwner();
     if (Owner)
     {
         SelfTable["this"] = Owner;
         SelfTable["Name"] = Owner->GetName().ToString();
-        std::cout << "[DEBUG] LoadScript: Bound self.this and self.Name" << std::endl;
     }
-    
+
     return true;
+}
+
+void ULuaScriptComponent::RegisterCoroutine(int coroutineID)
+{
+    ActiveCoroutineIDs.push_back(coroutineID);
 }

@@ -692,6 +692,7 @@
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
     <ClCompile Include="Source\Manager\Asset\Private\TextureManager.cpp" />
+    <ClCompile Include="Source\Manager\Coroutine\Private\LuaCoroutineManager.cpp" />
     <ClCompile Include="Source\Manager\Lua\Private\LuaScriptManager.cpp" />
     <ClCompile Include="Source\Manager\Render\Private\CascadeManager.cpp" />
     <ClCompile Include="Source\Manager\UI\Private\ViewportManager.cpp" />
@@ -845,6 +846,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Source\Component\Public\LightComponentBase.h" />
+    <Content Include="Source\Manager\Coroutine\Public\LuaCoroutineManager.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Asset\Shader\SceneDepthShader.hlsl">

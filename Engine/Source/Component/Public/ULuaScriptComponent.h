@@ -37,10 +37,15 @@ public:
     void ActivateFunction(const FString& FunctionName, Args&&... args);
     
     sol::table& GetLuaSelfTable() { return SelfTable; }
+    void SetScriptName(const FString& InScriptName);
 
 private:
     FString ScriptName;
     sol::table SelfTable;
+    TArray<int> ActiveCoroutineIDs;  // Track coroutines started by this component
+
+public:
+    void RegisterCoroutine(int coroutineID);
 };
 
 template<typename ...Args>
