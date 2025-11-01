@@ -60,7 +60,7 @@ private:
     // Cache for loaded script files with file modification time
     struct FLuaScriptCacheInfo
     {
-        sol::table ScriptTable;
+        sol::object ScriptTable;  // Can be a table OR a factory function
         std::filesystem::file_time_type LastWriteTime;
         std::filesystem::path ResolvedPath;
     };

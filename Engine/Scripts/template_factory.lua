@@ -2,17 +2,20 @@ setmetatable(_ENV, { __index = EngineTypes })
 
 local FVector = EngineTypes.FVector
 
--- ✅ FACTORY PATTERN - Safe for multiple actors sharing the same script!
--- Return a function that creates a new instance for each Actor
+-- ✅ Factory Pattern: Return a function that creates instances
+-- This ensures each Actor gets its own independent Lua environment
+-- Multiple actors can safely share this script!
+
 return function()
-    -- Each instance gets its own variables (not shared!)
+    -- These variables are created FRESH for each instance
     local obj = nil
     local ReturnTable = {}
 
-    -- Script-owned velocity that drives Tick movement; adjust per actor
+    -- Script-owned properties (can be different per actor)
     ReturnTable.Velocity = FVector(0.0, 0.0, 0.0)
 
     function ReturnTable:BeginPlay()
+        -- Store actor reference (this obj is unique to this instance!)
         obj = self.this
         if not obj then
             Print("[BeginPlay] Lua script missing actor reference.")
@@ -22,6 +25,30 @@ return function()
         local uuid = obj.GetUUID and obj:GetUUID() or "Unknown"
         local display_name = self.Name or (obj.GetName and obj:GetName() or "Actor")
         Print(string.format("[BeginPlay] %s (%s)", display_name, uuid))
+
+        if obj.PrintLocation then
+            obj:PrintLocation()
+        end
+    end
+
+    function ReturnTable:Tick(dt)
+        -- Each instance has its own 'obj' variable!
+        if not obj then
+            return
+        end
+
+        -- Validate actor
+        if not obj.GetUUID then
+            Print("[ERROR] Tick: actor is invalid!")
+            return
+        end
+
+        -- Get velocity (this is safe - part of the instance table)
+        local velocity = self.Velocity or FVector(0.0, 0.0, 0.0)
+
+        -- Update location
+        local loc = obj.ActorLocation
+        obj.ActorLocation = loc + velocity * dt
 
         if obj.PrintLocation then
             obj:PrintLocation()
@@ -57,19 +84,6 @@ return function()
         end
     end
 
-    function ReturnTable:Tick(dt)
-        if not obj then
-            return
-        end
-
-        local velocity = self.Velocity or FVector(0.0, 0.0, 0.0)
-        local loc = obj.ActorLocation
-        obj.ActorLocation = loc + velocity * dt
-
-        if obj.PrintLocation then
-            obj:PrintLocation()
-        end
-    end
-
+    -- Return the instance table
     return ReturnTable
 end
