@@ -323,12 +323,18 @@
     <ClInclude Include="Source\Actor\Public\PointLight.h" />
     <ClInclude Include="Source\Actor\Public\SphereActor.h" />
     <ClInclude Include="Source\Actor\Public\SpotLight.h" />
-    <ClInclude Include="Source\Actor\Public\StaticMeshActor.h" />
+    <ClInclude Include="Source\Actor\Public\StaticMeshActor.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Source\Actor\Public\TextActor.h" />
     <ClInclude Include="Source\Actor\Public\TriangleActor.h" />
-    <ClInclude Include="Source\Component\Mesh\Public\MeshComponent.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\MeshComponent.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Source\Component\Mesh\Public\StaticMesh.h" />
-    <ClInclude Include="Source\Component\Mesh\Public\StaticMeshComponent.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\StaticMeshComponent.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Source\Component\Public\ActorComponent.h" />
     <ClInclude Include="Source\Component\Public\AmbientLightComponent.h" />
     <ClInclude Include="Source\Component\Public\BillBoardComponent.h" />
@@ -364,8 +370,12 @@
     <ClInclude Include="Source\Global\Rotator.h" />
     <ClInclude Include="Source\Global\WeakObjectPtr.h" />
     <ClInclude Include="Source\Level\Public\World.h" />
-    <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h" />
-    <ClInclude Include="Source\Manager\Asset\Public\ObjManager.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Asset\Public\ObjManager.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Source\Manager\Asset\Public\TextureManager.h" />
     <ClInclude Include="Source\Manager\Lua\Public\LuaScriptManager.h" />
     <ClInclude Include="Source\Manager\Render\Public\CascadeManager.h" />
@@ -610,12 +620,20 @@
     <ClCompile Include="Source\Actor\Private\PointLight.cpp" />
     <ClCompile Include="Source\Actor\Private\SphereActor.cpp" />
     <ClCompile Include="Source\Actor\Private\SpotLight.cpp" />
-    <ClCompile Include="Source\Actor\Private\StaticMeshActor.cpp" />
+    <ClCompile Include="Source\Actor\Private\StaticMeshActor.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="Source\Actor\Private\TextActor.cpp" />
     <ClCompile Include="Source\Actor\Private\TriangleActor.cpp" />
-    <ClCompile Include="Source\Component\Mesh\Private\MeshComponent.cpp" />
-    <ClCompile Include="Source\Component\Mesh\Private\StaticMesh.cpp" />
-    <ClCompile Include="Source\Component\Mesh\Private\StaticMeshComponent.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\MeshComponent.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\StaticMesh.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\StaticMeshComponent.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="Source\Component\Private\ActorComponent.cpp" />
     <ClCompile Include="Source\Component\Private\AmbientLightComponent.cpp" />
     <ClCompile Include="Source\Component\Private\BillBoardComponent.cpp" />
@@ -653,8 +671,12 @@
     <ClCompile Include="Source\Global\WeakObjectPtr.cpp" />
     <ClCompile Include="Source\Level\Private\World.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp" />
-    <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp" />
-    <ClCompile Include="Source\Manager\Asset\Private\ObjManager.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
+    <ClCompile Include="Source\Manager\Asset\Private\ObjManager.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="Source\Manager\Asset\Private\TextureManager.cpp" />
     <ClCompile Include="Source\Manager\Lua\Private\LuaScriptManager.cpp" />
     <ClCompile Include="Source\Manager\Render\Private\CascadeManager.cpp" />
@@ -760,7 +782,9 @@
     <ClCompile Include="Source\Render\UI\Window\Private\DetailWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\UIWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\ViewportClientWindow.cpp" />
-    <ClCompile Include="Source\Texture\Private\Material.cpp" />
+    <ClCompile Include="Source\Texture\Private\Material.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="Source\Texture\Private\Texture.cpp" />
     <ClCompile Include="Source\Texture\Private\TextureFilter.cpp" />
     <ClCompile Include="Source\Utility\Private\LogFileWriter.cpp" />
@@ -802,7 +826,7 @@
     <Content Include="Asset\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Scripts\DefaultLevel\ACubeActor.lua" />
+    <Content Include="Source\Component\Public\LightComponentBase.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Asset\Shader\SceneDepthShader.hlsl">
@@ -864,8 +888,8 @@
     <ResourceCompile Include="Engine.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Source\Render\UI\Layout\Private\" />
-    <Folder Include="Source\Render\UI\Layout\Public\" />
+    <Folder Include="Source\Manager\UI\Layout\Private\" />
+    <Folder Include="Source\Manager\UI\Layout\Public\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\ClusteredRenderingCS.hlsli">

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <FxCompile Include="Asset\Shader\HitProxyShader.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\DepthOnly.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\LinearDepthOnly.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
     <FxCompile Include="Asset\Shader\ClusteredLightCullingCS.hlsl">
       <Filter>Asset\Shader</Filter>
     </FxCompile>
@@ -14,15 +23,6 @@
       <Filter>Asset\Shader</Filter>
     </FxCompile>
     <FxCompile Include="Asset\Shader\HeightFogShader.hlsl">
-      <Filter>Asset\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Asset\Shader\HitProxyShader.hlsl">
-      <Filter>Asset\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Asset\Shader\DepthOnly.hlsl">
-      <Filter>Asset\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Asset\Shader\LinearDepthOnly.hlsl">
       <Filter>Asset\Shader</Filter>
     </FxCompile>
     <FxCompile Include="Asset\Shader\UberLit.hlsl">
@@ -57,91 +57,22 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Utility\Private\ScopeCycleCounter.cpp">
+      <Filter>Source\Utility\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Global\BVH.cpp">
+      <Filter>Source\Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Global\Octree.cpp">
+      <Filter>Source\Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Optimization\Private\OcclusionCuller.cpp">
+      <Filter>Source\Optimization\Private</Filter>
+    </ClCompile>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Source\Component\Private\ULuaScriptComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\Delegate.cpp">
-      <Filter>Source\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\WeakObjectPtr.cpp">
-      <Filter>Source\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Manager\Lua\Private\LuaScriptManager.cpp">
-      <Filter>Source\Manager\Lua\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\ActorComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\AmbientLightComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\BillBoardComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\DecalComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\DecalSpotLightComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\DirectionalLightComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Component\Private\EditorIconComponent.cpp">
       <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\LightComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\LightComponentBase.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\PointLightComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\MovementComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\ProjectileMovementComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\RotatingMovementComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\HeightFogComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\SpotLightComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\TextComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\UUIDTextComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\PrimitiveComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Private\SceneComponent.cpp">
-      <Filter>Source\Component\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Mesh\Private\MeshComponent.cpp">
-      <Filter>Source\Component\Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Mesh\Private\StaticMesh.cpp">
-      <Filter>Source\Component\Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Mesh\Private\StaticMeshComponent.cpp">
-      <Filter>Source\Component\Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Component\Mesh\Private\VertexDatas.cpp">
-      <Filter>Source\Component\Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\EditorEngine.cpp">
-      <Filter>Source\Editor\Private</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\Private\GizmoGeometry.cpp">
       <Filter>Source\Editor\Private</Filter>
@@ -152,32 +83,35 @@
     <ClCompile Include="Source\Editor\Private\GizmoRenderer.cpp">
       <Filter>Source\Editor\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Editor\Private\Axis.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\BatchLines.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\BoundingBoxLines.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\Camera.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\Editor.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\Gizmo.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\Grid.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\Private\ObjectPicker.cpp">
-      <Filter>Source\Editor\Private</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Manager\Render\Private\CascadeManager.cpp">
       <Filter>Source\Manager\Render\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\RenderPass\Private\EditorIconPass.cpp">
+      <Filter>Source\Render\RenderPass\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\HitProxy\Private\HitProxy.cpp">
+      <Filter>Source\Render\HitProxy\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\RenderPass\Private\HitProxyPass.cpp">
+      <Filter>Source\Render\RenderPass\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\RenderPass\Private\ShadowData.cpp">
+      <Filter>Source\Render\RenderPass\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\RenderPass\Private\ShadowMapFilterPass.cpp">
+      <Filter>Source\Render\RenderPass\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\UI\Overlay\Private\D2DOverlayManager.cpp">
+      <Filter>Source\Render\UI\Overlay\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\UI\Widget\Private\StatusBarWidget.cpp">
+      <Filter>Source\Render\UI\Widget\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Texture\Private\TextureFilter.cpp">
+      <Filter>Source\Texture\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Utility\Private\LogFileWriter.cpp">
+      <Filter>Source\Utility\Private</Filter>
     </ClCompile>
     <ClCompile Include="Source\Manager\UI\Private\ViewportManager.cpp">
       <Filter>Source\Manager\UI\Private</Filter>
@@ -218,12 +152,6 @@
     <ClCompile Include="Source\Render\RenderPass\Private\DecalPass.cpp">
       <Filter>Source\Render\RenderPass\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\RenderPass\Private\EditorIconPass.cpp">
-      <Filter>Source\Render\RenderPass\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Render\RenderPass\Private\HitProxyPass.cpp">
-      <Filter>Source\Render\RenderPass\Private</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Render\RenderPass\Private\LightPass.cpp">
       <Filter>Source\Render\RenderPass\Private</Filter>
     </ClCompile>
@@ -242,9 +170,6 @@
     <ClCompile Include="Source\Render\RenderPass\Private\SceneDepthPass.cpp">
       <Filter>Source\Render\RenderPass\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\RenderPass\Private\ShadowData.cpp">
-      <Filter>Source\Render\RenderPass\Private</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Render\RenderPass\Private\ShadowMapPass.cpp">
       <Filter>Source\Render\RenderPass\Private</Filter>
     </ClCompile>
@@ -254,17 +179,17 @@
     <ClCompile Include="Source\Render\RenderPass\Private\TextPass.cpp">
       <Filter>Source\Render\RenderPass\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\RenderPass\Private\ShadowMapFilterPass.cpp">
-      <Filter>Source\Render\RenderPass\Private</Filter>
+    <ClCompile Include="Source\Render\UI\Layout\Private\Splitter.cpp">
+      <Filter>Source\Render\UI\Layout\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\HitProxy\Private\HitProxy.cpp">
-      <Filter>Source\Render\HitProxy\Private</Filter>
+    <ClCompile Include="Source\Render\UI\Viewport\Private\Viewport.cpp">
+      <Filter>Source\Render\UI\Viewport\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\UI\Overlay\Private\D2DOverlayManager.cpp">
-      <Filter>Source\Render\UI\Overlay\Private</Filter>
+    <ClCompile Include="Source\Render\UI\Viewport\Private\ViewportClient.cpp">
+      <Filter>Source\Render\UI\Viewport\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\UI\Overlay\Private\StatOverlay.cpp">
-      <Filter>Source\Render\UI\Overlay\Private</Filter>
+    <ClCompile Include="Source\Render\UI\Viewport\Private\Window.cpp">
+      <Filter>Source\Render\UI\Viewport\Private</Filter>
     </ClCompile>
     <ClCompile Include="Source\Render\UI\Widget\Private\ActorDetailWidget.cpp">
       <Filter>Source\Render\UI\Widget\Private</Filter>
@@ -329,9 +254,6 @@
     <ClCompile Include="Source\Render\UI\Widget\Private\StaticMeshComponentWidget.cpp">
       <Filter>Source\Render\UI\Widget\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\UI\Widget\Private\StatusBarWidget.cpp">
-      <Filter>Source\Render\UI\Widget\Private</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Render\UI\Widget\Private\ViewportControlWidget.cpp">
       <Filter>Source\Render\UI\Widget\Private</Filter>
     </ClCompile>
@@ -340,18 +262,6 @@
     </ClCompile>
     <ClCompile Include="Source\Render\UI\Widget\Private\Widget.cpp">
       <Filter>Source\Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Render\UI\Layout\Private\Splitter.cpp">
-      <Filter>Source\Render\UI\Layout\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Render\UI\Viewport\Private\Viewport.cpp">
-      <Filter>Source\Render\UI\Viewport\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Render\UI\Viewport\Private\ViewportClient.cpp">
-      <Filter>Source\Render\UI\Viewport\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Render\UI\Viewport\Private\Window.cpp">
-      <Filter>Source\Render\UI\Viewport\Private</Filter>
     </ClCompile>
     <ClCompile Include="Source\Render\UI\Window\Private\ConsoleWindow.cpp">
       <Filter>Source\Render\UI\Window\Private</Filter>
@@ -389,6 +299,9 @@
     <ClCompile Include="Source\Render\UI\ImGui\Private\ImGuiHelper.cpp">
       <Filter>Source\Render\UI\ImGui\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Render\UI\Overlay\Private\StatOverlay.cpp">
+      <Filter>Source\Render\UI\Overlay\Private</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Render\Renderer\Private\DeviceResources.cpp">
       <Filter>Source\Render\Renderer\Private</Filter>
     </ClCompile>
@@ -406,45 +319,6 @@
     </ClCompile>
     <ClCompile Include="Source\Render\Shadow\Private\PSMCalculator.cpp">
       <Filter>Source\Render\Shadow\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Texture\Private\ShadowMapResources.cpp">
-      <Filter>Source\Texture\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Texture\Private\Material.cpp">
-      <Filter>Source\Texture\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Texture\Private\Texture.cpp">
-      <Filter>Source\Texture\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Texture\Private\TextureFilter.cpp">
-      <Filter>Source\Texture\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Utility\Private\LogFileWriter.cpp">
-      <Filter>Source\Utility\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Utility\Private\ScopeCycleCounter.cpp">
-      <Filter>Source\Utility\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Utility\Private\UELogParser.cpp">
-      <Filter>Source\Utility\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\BVH.cpp">
-      <Filter>Source\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\Octree.cpp">
-      <Filter>Source\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\Quaternion.cpp">
-      <Filter>Source\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\Matrix.cpp">
-      <Filter>Source\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\Memory.cpp">
-      <Filter>Source\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Global\Vector.cpp">
-      <Filter>Source\Global</Filter>
     </ClCompile>
     <ClCompile Include="Source\Actor\Private\Actor.cpp">
       <Filter>Source\Actor\Private</Filter>
@@ -494,6 +368,102 @@
     <ClCompile Include="Source\Actor\Private\TriangleActor.cpp">
       <Filter>Source\Actor\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Component\Private\ActorComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\AmbientLightComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\BillBoardComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\DecalComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\DecalSpotLightComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\DirectionalLightComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\LightComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\LightComponentBase.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\PointLightComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\MovementComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\ProjectileMovementComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\RotatingMovementComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\HeightFogComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\SpotLightComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\TextComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\UUIDTextComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\PrimitiveComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\SceneComponent.cpp">
+      <Filter>Source\Component\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\MeshComponent.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\StaticMesh.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\StaticMeshComponent.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\VertexDatas.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\EditorEngine.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\Axis.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\BatchLines.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\BoundingBoxLines.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\Camera.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\Editor.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\Gizmo.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\Grid.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Private\ObjectPicker.cpp">
+      <Filter>Source\Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Utility\Private\UELogParser.cpp">
+      <Filter>Source\Utility\Private</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Physics\Private\AABB.cpp">
       <Filter>Source\Physics\Private</Filter>
     </ClCompile>
@@ -530,6 +500,18 @@
     <ClCompile Include="Source\Core\Private\Object.cpp">
       <Filter>Source\Core\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Global\Quaternion.cpp">
+      <Filter>Source\Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Global\Matrix.cpp">
+      <Filter>Source\Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Global\Memory.cpp">
+      <Filter>Source\Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Global\Vector.cpp">
+      <Filter>Source\Global</Filter>
+    </ClCompile>
     <ClCompile Include="Source\ImGui\imgui.cpp">
       <Filter>Source\ImGui</Filter>
     </ClCompile>
@@ -557,29 +539,338 @@
     <ClCompile Include="Source\Level\Private\Level.cpp">
       <Filter>Source\Level\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Optimization\Private\OcclusionCuller.cpp">
-      <Filter>Source\Optimization\Private</Filter>
+    <ClCompile Include="Source\Texture\Private\ShadowMapResources.cpp">
+      <Filter>Source\Texture\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Texture\Private\Material.cpp">
+      <Filter>Source\Texture\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Texture\Private\Texture.cpp">
+      <Filter>Source\Texture\Private</Filter>
     </ClCompile>
     <ClCompile Include="Source\Optimization\Private\ViewVolumeCuller.cpp">
       <Filter>Source\Optimization\Private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Global\BVH.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Octree.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Optimization\Public\OcclusionCuller.h">
+      <Filter>Source\Optimization\Public</Filter>
+    </ClInclude>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Source\Component\Public\ULuaScriptComponent.h">
+    <ClInclude Include="Source\Component\Public\EditorIconComponent.h">
       <Filter>Source\Component\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Global\Delegate.h">
+    <ClInclude Include="Source\Global\Rotator.h">
       <Filter>Source\Global</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Global\DelegateMacros.h">
-      <Filter>Source\Global</Filter>
+    <ClInclude Include="Source\Manager\Render\Public\CascadeManager.h">
+      <Filter>Source\Manager\Render\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Global\WeakObjectPtr.h">
-      <Filter>Source\Global</Filter>
+    <ClInclude Include="Source\Editor\Public\GizmoGeometry.h">
+      <Filter>Source\Editor\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Manager\Lua\Public\LuaScriptManager.h">
-      <Filter>Source\Manager\Lua\Public</Filter>
+    <ClInclude Include="Source\Editor\Public\GizmoMath.h">
+      <Filter>Source\Editor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Public\GizmoTypes.h">
+      <Filter>Source\Editor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\EditorIconPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\HitProxy\Public\HitProxy.h">
+      <Filter>Source\Render\HitProxy\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\HitProxyPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\ShadowData.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Overlay\Public\D2DOverlayManager.h">
+      <Filter>Source\Render\UI\Overlay\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapFilterPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\StatusBarWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Texture\Public\TextureFilter.h">
+      <Filter>Source\Texture\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Utility\Public\LogFileWriter.h">
+      <Filter>Source\Utility\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\UI\Public\ViewportManager.h">
+      <Filter>Source\Manager\UI\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\UI\Public\UIManager.h">
+      <Filter>Source\Manager\UI\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h">
+      <Filter>Source\Manager\Asset\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Asset\Public\ObjManager.h">
+      <Filter>Source\Manager\Asset\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Asset\Public\TextureManager.h">
+      <Filter>Source\Manager\Asset\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Asset\Public\AssetManager.h">
+      <Filter>Source\Manager\Asset\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Config\Public\ConfigManager.h">
+      <Filter>Source\Manager\Config\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Input\Public\InputManager.h">
+      <Filter>Source\Manager\Input\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Path\Public\PathManager.h">
+      <Filter>Source\Manager\Path\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Time\Public\TimeManager.h">
+      <Filter>Source\Manager\Time\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\BillboardPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\ClusteredRenderingGridPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\DecalPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\LightPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\PointLightPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\FogPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\FXAAPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\RenderingContext.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\RenderPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\SceneDepthPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\StaticMeshPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\RenderPass\Public\TextPass.h">
+      <Filter>Source\Render\RenderPass\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Layout\Public\Splitter.h">
+      <Filter>Source\Render\UI\Layout\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Layout\Public\SplitterH.h">
+      <Filter>Source\Render\UI\Layout\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Layout\Public\SplitterV.h">
+      <Filter>Source\Render\UI\Layout\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Viewport\Public\Viewport.h">
+      <Filter>Source\Render\UI\Viewport\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Viewport\Public\ViewportClient.h">
+      <Filter>Source\Render\UI\Viewport\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Viewport\Public\Window.h">
+      <Filter>Source\Render\UI\Viewport\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\ActorDetailWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\ActorTerminationWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\AmbientLightComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\ConsoleWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\DecalTextureSelectionWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\FPSWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\HeightFogComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\InputInformationWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\LevelTabBarWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\MainBarWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\ActorSpawnWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\DirectionalLightComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\PointLightComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\ProjectileMovementComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\RotatingMovementComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\SceneHierarchyWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\SceneIOWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\SetTextComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\SpotLightComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\SpriteSelectionWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\StaticMeshComponentWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\ViewportControlWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\ViewportMenuBarWidget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Widget\Public\Widget.h">
+      <Filter>Source\Render\UI\Widget\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\ConsoleWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\ControlPanelWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\EditorWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\ExperimentalFeatureWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\LevelTabBarWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\MainMenuWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\OutlinerWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\DetailWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\UIWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Window\Public\ViewportClientWindow.h">
+      <Filter>Source\Render\UI\Window\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Factory\Public\UIWindowFactory.h">
+      <Filter>Source\Render\UI\Factory\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\ImGui\Public\ImGuiHelper.h">
+      <Filter>Source\Render\UI\ImGui\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\UI\Overlay\Public\StatOverlay.h">
+      <Filter>Source\Render\UI\Overlay\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\Renderer\Public\DeviceResources.h">
+      <Filter>Source\Render\Renderer\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\Renderer\Public\Pipeline.h">
+      <Filter>Source\Render\Renderer\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\Renderer\Public\Renderer.h">
+      <Filter>Source\Render\Renderer\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\Renderer\Public\RenderResourceFactory.h">
+      <Filter>Source\Render\Renderer\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\Shadow\Public\PSMBounding.h">
+      <Filter>Source\Render\Shadow\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\Shadow\Public\PSMCalculator.h">
+      <Filter>Source\Render\Shadow\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\Actor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\AmbientLight.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\BillBoardActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\CubeActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\DecalActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\DecalSpotLightActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\DirectionalLight.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\HeightFogActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\Light.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\MovingCubeActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\PointLight.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\SphereActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\SpotLight.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\StaticMeshActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\TextActor.h">
+      <Filter>Source\Actor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Public\TriangleActor.h">
+      <Filter>Source\Actor\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Component\Public\ActorComponent.h">
       <Filter>Source\Component\Public</Filter>
@@ -597,9 +888,6 @@
       <Filter>Source\Component\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Component\Public\DirectionalLightComponent.h">
-      <Filter>Source\Component\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Component\Public\EditorIconComponent.h">
       <Filter>Source\Component\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Component\Public\LightComponentBase.h">
@@ -674,280 +962,13 @@
     <ClInclude Include="Source\Editor\Public\Gizmo.h">
       <Filter>Source\Editor\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Editor\Public\GizmoGeometry.h">
-      <Filter>Source\Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\Public\GizmoMath.h">
-      <Filter>Source\Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\Public\GizmoTypes.h">
-      <Filter>Source\Editor\Public</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Editor\Public\Grid.h">
       <Filter>Source\Editor\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\Public\ObjectPicker.h">
       <Filter>Source\Editor\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Manager\Render\Public\CascadeManager.h">
-      <Filter>Source\Manager\Render\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\UI\Public\ViewportManager.h">
-      <Filter>Source\Manager\UI\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\UI\Public\UIManager.h">
-      <Filter>Source\Manager\UI\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h">
-      <Filter>Source\Manager\Asset\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Asset\Public\ObjManager.h">
-      <Filter>Source\Manager\Asset\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Asset\Public\TextureManager.h">
-      <Filter>Source\Manager\Asset\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Asset\Public\AssetManager.h">
-      <Filter>Source\Manager\Asset\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Config\Public\ConfigManager.h">
-      <Filter>Source\Manager\Config\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Input\Public\InputManager.h">
-      <Filter>Source\Manager\Input\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Path\Public\PathManager.h">
-      <Filter>Source\Manager\Path\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Manager\Time\Public\TimeManager.h">
-      <Filter>Source\Manager\Time\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\BillboardPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\ClusteredRenderingGridPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\DecalPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\EditorIconPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\HitProxyPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\LightPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\PointLightPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\FogPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\FXAAPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\RenderingContext.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\RenderPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\SceneDepthPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\ShadowData.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\StaticMeshPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\TextPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapFilterPass.h">
-      <Filter>Source\Render\RenderPass\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\HitProxy\Public\HitProxy.h">
-      <Filter>Source\Render\HitProxy\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Overlay\Public\D2DOverlayManager.h">
-      <Filter>Source\Render\UI\Overlay\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Overlay\Public\StatOverlay.h">
-      <Filter>Source\Render\UI\Overlay\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\ActorDetailWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\ActorTerminationWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\AmbientLightComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\ConsoleWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\DecalTextureSelectionWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\FPSWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\HeightFogComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\InputInformationWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\LevelTabBarWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\MainBarWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\ActorSpawnWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\DirectionalLightComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\PointLightComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\ProjectileMovementComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\RotatingMovementComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\SceneHierarchyWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\SceneIOWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\SetTextComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\SpotLightComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\SpriteSelectionWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\StaticMeshComponentWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\StatusBarWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\ViewportControlWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\ViewportMenuBarWidget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Widget\Public\Widget.h">
-      <Filter>Source\Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Layout\Public\Splitter.h">
-      <Filter>Source\Render\UI\Layout\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Layout\Public\SplitterH.h">
-      <Filter>Source\Render\UI\Layout\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Layout\Public\SplitterV.h">
-      <Filter>Source\Render\UI\Layout\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Viewport\Public\Viewport.h">
-      <Filter>Source\Render\UI\Viewport\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Viewport\Public\ViewportClient.h">
-      <Filter>Source\Render\UI\Viewport\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Viewport\Public\Window.h">
-      <Filter>Source\Render\UI\Viewport\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\ConsoleWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\ControlPanelWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\EditorWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\ExperimentalFeatureWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\LevelTabBarWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\MainMenuWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\OutlinerWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\DetailWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\UIWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Window\Public\ViewportClientWindow.h">
-      <Filter>Source\Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\Factory\Public\UIWindowFactory.h">
-      <Filter>Source\Render\UI\Factory\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\UI\ImGui\Public\ImGuiHelper.h">
-      <Filter>Source\Render\UI\ImGui\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\Renderer\Public\DeviceResources.h">
-      <Filter>Source\Render\Renderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\Renderer\Public\Pipeline.h">
-      <Filter>Source\Render\Renderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\Renderer\Public\Renderer.h">
-      <Filter>Source\Render\Renderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\Renderer\Public\RenderResourceFactory.h">
-      <Filter>Source\Render\Renderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\Shadow\Public\PSMBounding.h">
-      <Filter>Source\Render\Shadow\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Render\Shadow\Public\PSMCalculator.h">
-      <Filter>Source\Render\Shadow\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Texture\Public\ShadowMapResources.h">
-      <Filter>Source\Texture\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Texture\Public\Material.h">
-      <Filter>Source\Texture\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Texture\Public\Texture.h">
-      <Filter>Source\Texture\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Texture\Public\TextureFilter.h">
-      <Filter>Source\Texture\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Texture\Public\TextureRenderProxy.h">
-      <Filter>Source\Texture\Public</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Utility\Public\JsonSerializer.h">
-      <Filter>Source\Utility\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Utility\Public\LogFileWriter.h">
       <Filter>Source\Utility\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Utility\Public\ScopeCycleCounter.h">
@@ -955,96 +976,6 @@
     </ClInclude>
     <ClInclude Include="Source\Utility\Public\UELogParser.h">
       <Filter>Source\Utility\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\BVH.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Octree.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Quaternion.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Rotator.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Constant.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\CoreTypes.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Enum.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\EnumReflection.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Function.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Macro.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Matrix.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Memory.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Types.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Global\Vector.h">
-      <Filter>Source\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\Actor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\AmbientLight.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\BillBoardActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\CubeActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\DecalActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\DecalSpotLightActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\DirectionalLight.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\HeightFogActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\Light.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\MovingCubeActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\PointLight.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\SphereActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\SpotLight.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\StaticMeshActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\TextActor.h">
-      <Filter>Source\Actor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Actor\Public\TriangleActor.h">
-      <Filter>Source\Actor\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Physics\Public\AABB.h">
       <Filter>Source\Physics\Public</Filter>
@@ -1094,6 +1025,39 @@
     <ClInclude Include="Source\Core\Public\resource.h">
       <Filter>Source\Core\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Global\Quaternion.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Constant.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\CoreTypes.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Enum.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\EnumReflection.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Function.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Macro.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Matrix.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Memory.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Types.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Global\Vector.h">
+      <Filter>Source\Global</Filter>
+    </ClInclude>
     <ClInclude Include="Source\ImGui\imconfig.h">
       <Filter>Source\ImGui</Filter>
     </ClInclude>
@@ -1124,8 +1088,17 @@
     <ClInclude Include="Source\Level\Public\Level.h">
       <Filter>Source\Level\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Optimization\Public\OcclusionCuller.h">
-      <Filter>Source\Optimization\Public</Filter>
+    <ClInclude Include="Source\Texture\Public\ShadowMapResources.h">
+      <Filter>Source\Texture\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Texture\Public\Material.h">
+      <Filter>Source\Texture\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Texture\Public\Texture.h">
+      <Filter>Source\Texture\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Texture\Public\TextureRenderProxy.h">
+      <Filter>Source\Texture\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Optimization\Public\ViewVolumeCuller.h">
       <Filter>Source\Optimization\Public</Filter>
@@ -1140,290 +1113,281 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Source">
-      <UniqueIdentifier>{43b42263-2775-4909-9145-da04583d2bb9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Component">
-      <UniqueIdentifier>{4feb4e6f-c71e-4755-8681-5a4865f37eea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Component\Private">
-      <UniqueIdentifier>{a2ec8a7e-e0b8-4828-9182-81644ce3ca07}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Global">
-      <UniqueIdentifier>{6d19ec08-d786-4f77-871c-50718d4dcd61}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager">
-      <UniqueIdentifier>{c12a75b4-2494-4be0-937a-ffe7961d99ef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Lua">
-      <UniqueIdentifier>{c0215bc6-c102-4a07-8287-11d7365fd744}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Lua\Private">
-      <UniqueIdentifier>{b460cedb-78b7-4912-a99a-7dc4b33f3c68}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Component\Public">
-      <UniqueIdentifier>{c7e5b714-325d-4b55-8c05-71e4c97ce530}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Lua\Public">
-      <UniqueIdentifier>{1dd24648-5a12-4e37-97fb-80188304ca2f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Asset">
-      <UniqueIdentifier>{c59d0f75-298e-494d-8b63-e679a7f9b975}</UniqueIdentifier>
+      <UniqueIdentifier>{7b69ecc9-b83a-4db5-a4e5-d25d367982af}</UniqueIdentifier>
     </Filter>
     <Filter Include="Asset\Shader">
-      <UniqueIdentifier>{4defd1b3-da44-410c-be30-4e3d50df8065}</UniqueIdentifier>
+      <UniqueIdentifier>{2461c9ec-9909-40d3-abb0-06d6bc66ca98}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\Mesh">
-      <UniqueIdentifier>{00f79bd4-7632-4965-b4d5-928112dce0d8}</UniqueIdentifier>
+    <Filter Include="Source">
+      <UniqueIdentifier>{357b32ee-433f-4fb9-9a8c-3f10d89d8f11}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\Mesh\Private">
-      <UniqueIdentifier>{b87ff7a0-8d4d-4f9c-9e9f-2cda2a98fc70}</UniqueIdentifier>
+    <Filter Include="Source\Component">
+      <UniqueIdentifier>{e5b77ac0-b2a9-4008-9536-445572909b7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\Mesh\Public">
-      <UniqueIdentifier>{2ab72ace-d624-4e15-9e75-13b7ef696593}</UniqueIdentifier>
+    <Filter Include="Source\Component\Private">
+      <UniqueIdentifier>{90abe875-fba0-4cc9-8233-8225ee61b487}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Editor">
-      <UniqueIdentifier>{ed0cfcc9-9cce-46bb-a5fb-41d52c9b6721}</UniqueIdentifier>
+      <UniqueIdentifier>{4b8faace-7122-49a3-a3e4-383df6be815c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Editor\Private">
-      <UniqueIdentifier>{d056a8e2-3a30-49c2-8c1c-2f43b52aa3c1}</UniqueIdentifier>
+      <UniqueIdentifier>{6789c6f3-9e0e-4b31-a824-b84c4c586e93}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Editor\Public">
-      <UniqueIdentifier>{2af15ea1-e9f7-4120-8b58-af3e34557d81}</UniqueIdentifier>
+    <Filter Include="Source\Manager">
+      <UniqueIdentifier>{3d262466-cdb4-4fe4-b165-e1e366f42390}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Manager\Render">
-      <UniqueIdentifier>{a4580641-3f6d-49b6-a328-29d96834f123}</UniqueIdentifier>
+      <UniqueIdentifier>{c5028400-6e68-487c-a4c9-a5dcc7ddc053}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Manager\Render\Private">
-      <UniqueIdentifier>{865b93a6-c924-4799-85b9-67c8cf98e6b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Render\Public">
-      <UniqueIdentifier>{59636b5d-c9b1-4e3c-9961-ba5a82420d56}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\UI">
-      <UniqueIdentifier>{a6e12a2d-8568-4475-909e-748fdc06bcdf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\UI\Private">
-      <UniqueIdentifier>{75834d79-29fd-4bd6-b116-efb74c319355}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\UI\Public">
-      <UniqueIdentifier>{3ee20321-5c24-4814-9d87-4de354ce534c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Asset">
-      <UniqueIdentifier>{46745e5b-acd1-4cba-990b-bddc598fdf55}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Asset\Private">
-      <UniqueIdentifier>{4829c681-49c7-4aca-ae17-9cb5b475a48e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Asset\Public">
-      <UniqueIdentifier>{113b11e6-3daf-4827-ae4b-205fc33ffc0e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Config">
-      <UniqueIdentifier>{11e37ea8-cfa7-4f18-8e0f-eb7bead4d489}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Config\Private">
-      <UniqueIdentifier>{26d7ee40-a7e5-43aa-ac4e-9a9a7fb9d666}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Config\Public">
-      <UniqueIdentifier>{7d1711e2-8ea7-4701-aaeb-8e32373f3d45}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Input">
-      <UniqueIdentifier>{05fb81aa-45ab-4329-b707-a6895c3d594f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Input\Private">
-      <UniqueIdentifier>{3965b45b-0b5b-4a8d-9559-ee8c1b3c8743}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Input\Public">
-      <UniqueIdentifier>{af686dd1-85d1-4c17-ac77-8a9bb63b7f86}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Path">
-      <UniqueIdentifier>{20353dd1-e9d8-4bf7-b04e-892b42d897df}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Path\Private">
-      <UniqueIdentifier>{07524f34-eeb0-426d-b00c-17ba313bb65f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Path\Public">
-      <UniqueIdentifier>{3c592034-c416-4dc1-bca9-9b5cd4b419ef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Time">
-      <UniqueIdentifier>{a4d545d4-b865-4bf4-8573-975a7a0c1960}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Time\Private">
-      <UniqueIdentifier>{5929162e-afc7-4c78-ad06-869d8e987079}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Manager\Time\Public">
-      <UniqueIdentifier>{f88b0241-8f4a-4dc3-b4b6-38b08d663812}</UniqueIdentifier>
+      <UniqueIdentifier>{6e04fdfc-f670-4059-9744-779438509f78}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render">
-      <UniqueIdentifier>{3e244cea-ab56-4745-b54e-46324e6838cf}</UniqueIdentifier>
+      <UniqueIdentifier>{9412672f-a54c-417d-910d-1d947e50705a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\RenderPass">
-      <UniqueIdentifier>{f5d143cf-ee0d-4993-aa16-0ae31da7544d}</UniqueIdentifier>
+      <UniqueIdentifier>{b8aefa2e-a7f1-4b16-b0e4-aa68571b1c9e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\RenderPass\Private">
-      <UniqueIdentifier>{9bb2c219-d559-4f8f-ac45-1c5f1bcea9f1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\RenderPass\Public">
-      <UniqueIdentifier>{4b391583-3c80-46eb-9ad0-4e209725b10b}</UniqueIdentifier>
+      <UniqueIdentifier>{d5859243-e6c1-4dbe-a5ae-2c38bebae368}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\HitProxy">
-      <UniqueIdentifier>{f2997837-9eee-45da-9a76-62232788d83f}</UniqueIdentifier>
+      <UniqueIdentifier>{d0ebd361-6a6a-43e8-8af4-81c9213be75a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\HitProxy\Private">
-      <UniqueIdentifier>{f15835ed-3db3-4eb2-bd39-45820b682e80}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\HitProxy\Public">
-      <UniqueIdentifier>{032d6b7c-07e2-4909-99c8-027e07364863}</UniqueIdentifier>
+      <UniqueIdentifier>{0820351f-a301-404b-bf16-04adf4743b1d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\UI">
-      <UniqueIdentifier>{8ed29ddc-929e-4998-a11e-05cb573bfada}</UniqueIdentifier>
+      <UniqueIdentifier>{f82fa107-5c1b-46e9-ba33-5a982d1c2025}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\UI\Overlay">
-      <UniqueIdentifier>{db722fa3-084f-4c03-8c81-efa69c00b5c8}</UniqueIdentifier>
+      <UniqueIdentifier>{da2e2ea6-ff74-4140-9d66-bd010060255c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\UI\Overlay\Private">
-      <UniqueIdentifier>{a2b9a336-14aa-4d91-9957-308381e1664d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Overlay\Public">
-      <UniqueIdentifier>{e250448a-9f5d-4129-a707-a68461cab966}</UniqueIdentifier>
+      <UniqueIdentifier>{1b48e340-ab0b-4655-a090-42a50d129d1a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\UI\Widget">
-      <UniqueIdentifier>{2a9bd41a-f106-4c7e-815e-ff19b1502794}</UniqueIdentifier>
+      <UniqueIdentifier>{58c42e73-6c51-44eb-acd7-8a2a60e59fa9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Render\UI\Widget\Private">
-      <UniqueIdentifier>{8535292c-4c74-48c6-b25b-ef0937078361}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Widget\Public">
-      <UniqueIdentifier>{7b666f33-5aa1-427c-949d-09c9ab399070}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Layout">
-      <UniqueIdentifier>{0bcdaddc-b703-42c9-816b-a1ddf82a3889}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Layout\Private">
-      <UniqueIdentifier>{692d5b5c-f9ab-436f-a8dd-129708c13be7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Layout\Public">
-      <UniqueIdentifier>{d242acf8-7791-4a0e-aea5-128afe2cdf06}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Viewport">
-      <UniqueIdentifier>{5b9a9022-67fb-48b9-8ce6-02e3e11bbf2d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Viewport\Private">
-      <UniqueIdentifier>{79dee63e-85ba-4c93-8f3b-b97946629632}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Viewport\Public">
-      <UniqueIdentifier>{deff106c-81fa-494c-96a7-2cfb451e7bc2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Window">
-      <UniqueIdentifier>{1b916004-93c3-48ac-b879-bf34d46b84a8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Window\Private">
-      <UniqueIdentifier>{41aa1794-1c63-472c-942b-40854248fd2c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Window\Public">
-      <UniqueIdentifier>{2ce3623c-a249-481f-99ea-8663d87808a2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Factory">
-      <UniqueIdentifier>{944368dd-c853-4389-944a-3cbf9d19bcaf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Factory\Private">
-      <UniqueIdentifier>{d411ff85-c684-4825-8216-fe410a72b31f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\Factory\Public">
-      <UniqueIdentifier>{aaed242b-4b7c-4510-809f-6d0e5768529f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\ImGui">
-      <UniqueIdentifier>{42d76679-a6e5-4fe6-b4d3-c19439e3b37f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\ImGui\Private">
-      <UniqueIdentifier>{cec39872-69aa-4731-b291-5bb3713eddc8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\UI\ImGui\Public">
-      <UniqueIdentifier>{9bb33945-a014-4ba4-8477-cb8e09fb8f53}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\Renderer">
-      <UniqueIdentifier>{a9fcaaf7-f3b1-4bc8-bc41-c092d079442f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\Renderer\Private">
-      <UniqueIdentifier>{274c4145-1b9e-4690-b075-4dcc94a3a8e0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\Renderer\Public">
-      <UniqueIdentifier>{bcd561fa-dd7c-4e6e-8c5d-41ee054ad4d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\Shadow">
-      <UniqueIdentifier>{bb642779-a421-4669-8f3c-18f7ed89beef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\Shadow\Public">
-      <UniqueIdentifier>{3bfad74b-7d99-4502-b872-cefffcd71052}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Render\Shadow\Private">
-      <UniqueIdentifier>{b2d441b3-25a0-4955-874a-a2d1de96bf14}</UniqueIdentifier>
+      <UniqueIdentifier>{a8b63d2d-4f5f-4101-b7a4-05e3f7419c7a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Texture">
-      <UniqueIdentifier>{4dd0cd60-8238-4d89-b68d-598962010548}</UniqueIdentifier>
+      <UniqueIdentifier>{41aa8faf-4615-4046-aedb-47e09a237d00}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Texture\Private">
-      <UniqueIdentifier>{8010b2aa-3315-4f13-8f0c-7a0eaa8452f4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Texture\Public">
-      <UniqueIdentifier>{ec28cdb7-b150-42ad-af31-1beab8e9d480}</UniqueIdentifier>
+      <UniqueIdentifier>{e2e63b3a-990d-42f9-a105-9b77a47f24cf}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Utility">
-      <UniqueIdentifier>{0e224d06-75e4-43e2-834d-91102a47c648}</UniqueIdentifier>
+      <UniqueIdentifier>{362f9447-7f14-48a3-b7ba-3af4dd263349}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Utility\Private">
-      <UniqueIdentifier>{94f12b74-addd-4cdb-acb6-013e50c5a416}</UniqueIdentifier>
+      <UniqueIdentifier>{2fce900c-4f18-4968-9cab-fd0bef198a16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Public">
+      <UniqueIdentifier>{397d4b4d-8455-4cbe-a4d7-a56c6d0ba951}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Global">
+      <UniqueIdentifier>{83cd5a4d-383a-4285-a999-7788aff4a96e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Render\Public">
+      <UniqueIdentifier>{e3102607-30d0-407f-83bb-12341c0fb371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Editor\Public">
+      <UniqueIdentifier>{70964c3e-5afa-4f7a-8530-69ec01a519fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\RenderPass\Public">
+      <UniqueIdentifier>{9fda4876-2494-4976-9c09-6b8f8ad2d352}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\HitProxy\Public">
+      <UniqueIdentifier>{8808594d-2e7a-4164-a175-a9b497a813e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Overlay\Public">
+      <UniqueIdentifier>{f235eb4a-245b-42c6-bfb4-473658e52403}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Widget\Public">
+      <UniqueIdentifier>{ef72afd9-de35-4350-8402-234cdf298540}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Texture\Public">
+      <UniqueIdentifier>{fe1b6509-9fcc-4cde-a168-b136d0d56307}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Utility\Public">
-      <UniqueIdentifier>{9f467334-4b6d-4e70-9c03-c1df769383fa}</UniqueIdentifier>
+      <UniqueIdentifier>{9f851d8e-fc23-4eef-8641-37046c79381e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\UI">
+      <UniqueIdentifier>{159837bf-4b83-4877-b436-51bea0b58e10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\UI\Private">
+      <UniqueIdentifier>{ca436634-dc50-429b-af8c-8cddffbf2405}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\UI\Public">
+      <UniqueIdentifier>{cc64351b-8573-4a3d-8723-40382ce62602}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Asset">
+      <UniqueIdentifier>{7cf0399e-8a6a-4ef1-a4eb-97fed94ab5bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Asset\Private">
+      <UniqueIdentifier>{d55d4400-fbb7-46bf-bd2b-47dadb49658d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Asset\Public">
+      <UniqueIdentifier>{3872830e-9270-481e-9bc0-61d64d7a2645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Config">
+      <UniqueIdentifier>{0a9520d7-081e-425d-a35e-5756ebfcd98c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Config\Private">
+      <UniqueIdentifier>{0ac17bde-e4c9-4b88-a990-3cb54b63d581}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Config\Public">
+      <UniqueIdentifier>{e99e5a3a-b72b-43d4-9856-a32524041ba9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Input">
+      <UniqueIdentifier>{cadfbdfc-0eba-4c51-9b9e-76d1c9f11978}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Input\Private">
+      <UniqueIdentifier>{9d6b84f9-68ee-4ba2-9094-d591be6dd09c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Input\Public">
+      <UniqueIdentifier>{c194e89a-be0b-4b46-b6b9-461ff3cdc0ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Path">
+      <UniqueIdentifier>{9f81a681-1836-4854-bb18-fd49f895e538}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Path\Private">
+      <UniqueIdentifier>{818045c3-c747-43e6-ad87-3f35ba597752}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Path\Public">
+      <UniqueIdentifier>{37bb7215-3f16-447c-9077-8ebc3ebc6bec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Time">
+      <UniqueIdentifier>{bc5c5150-efa9-4b20-af0e-6f974cab7bc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Time\Private">
+      <UniqueIdentifier>{3089b133-8ead-45db-b776-6080905258de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Manager\Time\Public">
+      <UniqueIdentifier>{36d5cd07-33fc-4528-8031-95b0a32859d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Layout">
+      <UniqueIdentifier>{cd8c7e01-ef20-46d7-a0b6-9aa8b9fceb41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Layout\Private">
+      <UniqueIdentifier>{e0a8c713-005e-420a-8680-95e428df21db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Layout\Public">
+      <UniqueIdentifier>{e5031631-3752-4cf6-a967-5815c4639d07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Viewport">
+      <UniqueIdentifier>{9e91447d-4de7-42db-9437-6cbc65694f25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Viewport\Private">
+      <UniqueIdentifier>{aed1f577-3e81-4000-8cce-16a03276bab9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Viewport\Public">
+      <UniqueIdentifier>{fece77f6-8ad9-470f-bb03-1c1c5c3b4d9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Window">
+      <UniqueIdentifier>{4a844a10-096b-412f-89de-42ee476563cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Window\Private">
+      <UniqueIdentifier>{1ce5fd6f-708f-442e-ba64-9cdf58b46b6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Window\Public">
+      <UniqueIdentifier>{723f21a6-58b0-47f5-b155-df07475fdc9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Factory">
+      <UniqueIdentifier>{3975366e-add6-485b-bc3e-4ec2eea699b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Factory\Private">
+      <UniqueIdentifier>{2d21dbdf-c4f3-400d-8e88-610c7134dc27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\Factory\Public">
+      <UniqueIdentifier>{bf5ed3f6-696e-4ac1-ad45-84d40d24d2fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\ImGui">
+      <UniqueIdentifier>{0d992c3f-fedb-436b-90a2-7286e59176a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\ImGui\Private">
+      <UniqueIdentifier>{1be47e9a-c272-436f-a946-7ace3255f22d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\UI\ImGui\Public">
+      <UniqueIdentifier>{20233d97-4a4c-4ac2-889d-e3db239d3206}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\Renderer">
+      <UniqueIdentifier>{bdd47a61-c5bf-4df3-a4b9-f3c0e96f583c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\Renderer\Private">
+      <UniqueIdentifier>{f6ab0cf2-bb06-4ae8-bbe2-32f0256a819f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\Renderer\Public">
+      <UniqueIdentifier>{68424f74-be16-49be-b455-7a5c338e7b35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\Shadow">
+      <UniqueIdentifier>{052dc1af-b0a7-4b1d-a687-3733a7bfcaaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\Shadow\Public">
+      <UniqueIdentifier>{25d3abe6-e4f1-44e9-97c7-293ade3d0864}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render\Shadow\Private">
+      <UniqueIdentifier>{ca839f9e-68ee-424d-8e4c-67a0d111b06c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Actor">
-      <UniqueIdentifier>{42e1a090-ffc4-4326-9683-372cb08e4a75}</UniqueIdentifier>
+      <UniqueIdentifier>{14897e9a-e14d-4dcd-9562-da03ff633fa0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Actor\Private">
-      <UniqueIdentifier>{913218cf-05ac-4741-ab7e-930bb3656818}</UniqueIdentifier>
+      <UniqueIdentifier>{bcf8a7cf-e689-4c7f-b413-9ab10c8d50c7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Actor\Public">
-      <UniqueIdentifier>{525573ec-3a40-4aa2-a1ea-8f48037fad07}</UniqueIdentifier>
+      <UniqueIdentifier>{709ba523-10a3-4a02-9ded-2530319e00dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Mesh">
+      <UniqueIdentifier>{1a1cfd4e-27cd-4a10-a704-cd2fa9ccd53c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Mesh\Private">
+      <UniqueIdentifier>{ba858441-b1d9-4924-aeb0-5648a7dd5c4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Mesh\Public">
+      <UniqueIdentifier>{80ae7ac9-0af4-4367-a8af-814b07f27940}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Physics">
-      <UniqueIdentifier>{c14715d1-e811-4f27-852b-71eb997ee243}</UniqueIdentifier>
+      <UniqueIdentifier>{f4a305ad-36ce-4eeb-9d1b-74087743b012}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Physics\Private">
-      <UniqueIdentifier>{15b27171-8b62-4173-ad21-40cd46035bfd}</UniqueIdentifier>
+      <UniqueIdentifier>{6d46d537-5b24-4770-9de6-4d009b432acc}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Physics\Public">
-      <UniqueIdentifier>{ff8092ea-3733-49b8-9cff-27b8b0ffd30b}</UniqueIdentifier>
+      <UniqueIdentifier>{890916fd-6546-4c98-9bd9-688e48b7d1fe}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Core">
-      <UniqueIdentifier>{e0671a4f-51b2-497c-92bb-62dfd808caeb}</UniqueIdentifier>
+      <UniqueIdentifier>{3ab890dd-a78e-4b47-a917-0c1940c15b0e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Core\Public">
-      <UniqueIdentifier>{0a363e59-f1e4-43d4-a59c-698f8a8dd823}</UniqueIdentifier>
+      <UniqueIdentifier>{7bfdf225-5448-44a2-be46-5a6901450011}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Core\Private">
-      <UniqueIdentifier>{72e904b6-35fa-4b8c-b9eb-a588a7595e01}</UniqueIdentifier>
+      <UniqueIdentifier>{bb506548-1d24-44aa-a8a9-95e2432ae853}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\ImGui">
-      <UniqueIdentifier>{aa99fd58-3512-4b95-bd51-1f67ae2e8ad2}</UniqueIdentifier>
+      <UniqueIdentifier>{5c4097ef-b478-4785-a16b-62047a0aec99}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Level">
-      <UniqueIdentifier>{15be26d3-0ace-496b-b76d-88eca563013a}</UniqueIdentifier>
+      <UniqueIdentifier>{1af0745e-863c-4b05-a89d-28577b56e52c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Level\Private">
-      <UniqueIdentifier>{7452004c-b4f2-4bf5-be8f-45d3d01489e8}</UniqueIdentifier>
+      <UniqueIdentifier>{1f19d79f-369f-43aa-a9d6-4cf8cf63a7c0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Level\Public">
-      <UniqueIdentifier>{4b69655f-12b0-4004-8d21-b7204e641841}</UniqueIdentifier>
+      <UniqueIdentifier>{57df51eb-ae63-446c-99af-cb43d8f072e4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Optimization">
-      <UniqueIdentifier>{3f36320d-8203-4900-b392-463c9d87c3c0}</UniqueIdentifier>
+      <UniqueIdentifier>{2ac72101-3306-4014-a333-87d7123e1474}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Optimization\Public">
-      <UniqueIdentifier>{3baf42c5-78f5-4557-8610-b7d7e7020a00}</UniqueIdentifier>
+      <UniqueIdentifier>{4e0cb234-a186-4d6a-9002-abfe024c4339}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Optimization\Private">
-      <UniqueIdentifier>{6759108b-26ec-4b98-881a-a2d58050ded1}</UniqueIdentifier>
+      <UniqueIdentifier>{2fad7328-4057-4353-9b63-1a04e1788bef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
