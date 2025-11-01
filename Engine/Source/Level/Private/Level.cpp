@@ -47,6 +47,20 @@ void ULevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 	{
 		LightComponents.clear();
 		ShapeComponents.clear();
+
+		// 동적 오브젝트 추적 정보 초기화
+		DynamicPrimitiveMap.clear();
+		while (!DynamicPrimitiveQueue.empty())
+		{
+			DynamicPrimitiveQueue.pop();
+		}
+		OctreeInsertRetryCount.clear();
+		// 옥트리 완전 초기화
+		if (StaticOctree)
+		{
+			StaticOctree->Clear();
+		}
+
 		// NOTE: 레벨 로드 시 NextUUID를 변경하면 UUID 충돌이 발생하므로 관련 기능 구현을 보류합니다.
 		uint32 NextUUID = 0;
 		FJsonSerializer::ReadUint32(InOutHandle, "NextUUID", NextUUID);
@@ -199,19 +213,20 @@ void ULevel::UnregisterComponent(UActorComponent* InComponent)
 		OnPrimitiveUnregistered(PrimitiveComponent);
 		if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(PrimitiveComponent))
 		{
-			if (auto It = std::find(ShapeComponents.begin(), ShapeComponents.end(), ShapeComponent); It !=
-				ShapeComponents.end())
-			{
-				ShapeComponents.erase(It);
-			}
+			// 해당 포인터의 모든 인스턴스 제거
+			ShapeComponents.erase(
+				std::remove(ShapeComponents.begin(), ShapeComponents.end(), ShapeComponent),
+				ShapeComponents.end()
+			);
 		}
 	}
 	else if (auto LightComponent = Cast<ULightComponent>(InComponent))
 	{
-		if (auto It = std::find(LightComponents.begin(), LightComponents.end(), LightComponent); It != LightComponents.end())
-		{
-			LightComponents.erase(It);
-		}
+		// Erase-Remove Idiom: 해당 컴포넌트의 모든 인스턴스를 한 번에 제거
+		LightComponents.erase(
+			std::remove(LightComponents.begin(), LightComponents.end(), LightComponent),
+			LightComponents.end()
+		);
 	}
 }
 
@@ -232,39 +247,10 @@ void ULevel::AddLevelComponent(AActor* Actor)
 		return;
 	}
 
+	// 각 컴포넌트를 RegisterComponent에 위임
 	for (auto& Component : Actor->GetOwnedComponents())
 	{
-		if (auto PrimitiveComponent = Cast<UPrimitiveComponent>(Component))
-		{
-			OnPrimitiveUpdated(PrimitiveComponent);		
-			if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(PrimitiveComponent))
-			{
-				ShapeComponents.push_back(ShapeComponent);
-			}
-		}
-		else if (auto LightComponent = Cast<ULightComponent>(Component))
-		{
-			if (auto PointLightComponent = Cast<UPointLightComponent>(LightComponent))
-			{
-				if (auto SpotLightComponent = Cast<USpotLightComponent>(PointLightComponent))
-				{
-					LightComponents.push_back(SpotLightComponent);
-				}
-				else
-				{
-					LightComponents.push_back(PointLightComponent);
-				}
-			}
-			if (auto DirectionalLightComponent = Cast<UDirectionalLightComponent>(LightComponent))
-			{
-				LightComponents.push_back(DirectionalLightComponent);
-			}
-			if (auto AmbientLightComponent = Cast<UAmbientLightComponent>(LightComponent))
-			{
-				LightComponents.push_back(AmbientLightComponent);
-			}
-			
-		}
+		RegisterComponent(Component);
 	}
 }
 
@@ -357,11 +343,36 @@ void ULevel::UpdateOctree()
 				if (StaticOctree->Insert(Component))
 				{
 					DynamicPrimitiveMap.erase(It);
+					OctreeInsertRetryCount.erase(Component);
 				}
 				// 삽입이 안됐다면 다시 Queue에 들어가기 위해 저장
 				else
 				{
-					NotInsertedQueue.push({Component, It->second});
+					// 재시도 횟수 확인
+					int32 CurrentRetryCount = 0;
+					if (auto RetryIt = OctreeInsertRetryCount.find(Component); RetryIt != OctreeInsertRetryCount.end())
+					{
+						CurrentRetryCount = RetryIt->second;
+					}
+
+					// 최대 10회까지 재시도
+					if (CurrentRetryCount < 10)
+					{
+						// 재시도 횟수 증가
+						OctreeInsertRetryCount[Component] = CurrentRetryCount + 1;
+
+						// 다시 큐에 추가 (2개 필드만 사용)
+						NotInsertedQueue.push({ Component, It->second });
+					}
+					else
+					{
+						// 10회 실패 시 추적 중단
+						UE_LOG_WARNING("UpdateOctree: Component '%s'가 옥트리 영역 밖으로 벗어나 추적을 중단합니다.",
+							Component->GetName().ToString().data());
+
+						DynamicPrimitiveMap.erase(It);
+						OctreeInsertRetryCount.erase(Component);
+					}
 				}
 				// TODO: 오브젝트의 유일성을 보장하기 위해 StaticOctree->Remove(Component)가 필요한가?
 				++Count;
@@ -388,6 +399,10 @@ void ULevel::OnPrimitiveUpdated(UPrimitiveComponent* InComponent)
 		return;
 	}
 
+	if (!StaticOctree)
+	{
+		return;  // 옥트리가 없으면 추적하지 않음
+	}
 	float GameTime = UTimeManager::GetInstance().GetGameTime();
 	if (auto It = DynamicPrimitiveMap.find(InComponent); It != DynamicPrimitiveMap.end())
 	{
@@ -412,4 +427,5 @@ void ULevel::OnPrimitiveUnregistered(UPrimitiveComponent* InComponent)
 	{
 		DynamicPrimitiveMap.erase(It);
 	}
+	OctreeInsertRetryCount.erase(InComponent);
 }

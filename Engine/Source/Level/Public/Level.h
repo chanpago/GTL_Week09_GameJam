@@ -134,4 +134,6 @@ public:
 	const TArray<UShapeComponent*>& GetShapeComponents() const { return ShapeComponents; }
 private:
 	TArray<UShapeComponent*> ShapeComponents;
+	/** @brief 옥트리 재삽입 실패 횟수 추적 (영역 밖으로 나간 오브젝트 감지) */
+	TMap<UPrimitiveComponent*, int32> OctreeInsertRetryCount;
 };
