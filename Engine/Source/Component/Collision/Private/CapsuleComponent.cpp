@@ -44,6 +44,26 @@ FColor UCapsuleComponent::GetDefaultWireColor() const
     return FColor(0, 200, 255, 255);
 }
 
+FVector UCapsuleComponent::GetUpVector() const
+{
+    if (!this)
+    {
+        return FVector(0.0f, 0.0f, 1.0f);
+    }
+
+    const FMatrix& WorldMatrix = this->GetWorldTransformMatrix();
+
+    // 월드 변환 행렬의 Z축 벡터 추출 (열 우선: Data[row][col])
+    FVector UpVector(
+        WorldMatrix.Data[0][2],  // X component of Z-axis
+        WorldMatrix.Data[1][2],  // Y component of Z-axis
+        WorldMatrix.Data[2][2]   // Z component of Z-axis
+    );
+
+    return UpVector.GetNormalized();
+}
+
+
 void UCapsuleComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);

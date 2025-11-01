@@ -13,6 +13,7 @@ bool FOBB::Intersects(const FAABB& Other) const
 
 bool FOBB::Intersects(const FOBB& Other) const
 {
+    // 로컬 축 추출
     const FVector AxisLhs[] = {
         FVector(ScaleRotation.Data[0][0], ScaleRotation.Data[0][1], ScaleRotation.Data[0][2]),
         FVector(ScaleRotation.Data[1][0], ScaleRotation.Data[1][1], ScaleRotation.Data[1][2]),
@@ -29,14 +30,15 @@ bool FOBB::Intersects(const FOBB& Other) const
 
     size_t Count = 0;
 
-    TestAxis[Count++] = AxisLhs[0];
-    TestAxis[Count++] = AxisLhs[1];
-    TestAxis[Count++] = AxisLhs[2];
+    TestAxis[Count++] = AxisLhs[0]; // 박스A의 Right
+    TestAxis[Count++] = AxisLhs[1]; // 박스A의 Up
+    TestAxis[Count++] = AxisLhs[2]; // 박스A의 Forward
 
-    TestAxis[Count++] = AxisRhs[0];
-    TestAxis[Count++] = AxisRhs[1];
-    TestAxis[Count++] = AxisRhs[2];
+    TestAxis[Count++] = AxisRhs[0]; // 박스B의 Right
+    TestAxis[Count++] = AxisRhs[1]; // 박스B의 Up
+    TestAxis[Count++] = AxisRhs[2]; // 박스B의 Forward
 
+    // 외적으로 9개 더 생성 (모서리 충돌을 감지하기 위한 축)
     for (size_t i = 0; i < 3; ++i)
     {
         for (size_t j = 0; j < 3; ++j)
@@ -53,25 +55,26 @@ bool FOBB::Intersects(const FOBB& Other) const
 
     for (size_t i = 0; i < Count; ++i)
     {
+        // 1. 두 박스 중심 사이 거리를 축에 투영
         float ProjectedDist = abs(Diff.Dot(TestAxis[i]));
-
+        // 2. 박스A의 크기를 축에 투영
         float ProjectedRadiusLhs =
             Extents.X * abs(AxisLhs[0].Dot(TestAxis[i])) +
             Extents.Y * abs(AxisLhs[1].Dot(TestAxis[i])) +
             Extents.Z * abs(AxisLhs[2].Dot(TestAxis[i]));
-
+        // 3. 박스B의 크기를 축에 투영
         float ProjectedRadiusRhs = 
             Other.Extents.X * abs(AxisRhs[0].Dot(TestAxis[i])) +
             Other.Extents.Y * abs(AxisRhs[1].Dot(TestAxis[i])) +
             Other.Extents.Z * abs(AxisRhs[2].Dot(TestAxis[i]));
-
+        // 4. 중심 거리 > 크기 합이면 분리됨!
         if (ProjectedDist > ProjectedRadiusLhs + ProjectedRadiusRhs)
         {
-            return false;
+            return false; // 충돌 없음!
         }
     }
 
-    return true;
+    return true; // 모든 축에서 겹침 = 충돌!
 }
 
 void FOBB::Update(const FMatrix& WorldMatrix)

@@ -528,6 +528,7 @@ void AActor::BeginPlay()
 			Component->BeginPlay();
 		}
 	}
+
 }
 
 void AActor::EndPlay()

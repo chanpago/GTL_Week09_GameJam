@@ -270,17 +270,22 @@ bool UPrimitiveComponent::IsOverlappingActor(const AActor* Other) const
 
 void UPrimitiveComponent::UpdateOverlaps()
 {
+	// 이전 프레임 정보 백업
+	PreviousOverlapInfos = OverlapInfos;
+
+	// 현재 프레임 충돌 정보 초기화
 	OverlapInfos.clear();
 
-	if (!bGenerateOverlapEvents)
+	if (!bGenerateOverlapEvents && !bGenerateHitEvents)
 	{
 		return;
 	}
 
 	AActor* ThisOwner = GetOwner();
+
 	// ========== 1차 충돌 검사: 옥트리 (Broad Phase) ==========
 
-	  // Level의 옥트리 가져오기
+	// Level의 옥트리 가져오기
 	ULevel* Level = Cast<ULevel>(GWorld->GetLevel());
 	if (!Level || !Level->GetStaticOctree())
 	{
@@ -351,6 +356,72 @@ void UPrimitiveComponent::UpdateOverlaps()
 			Info.OtherComponent = Candidate;
 			Info.OtherActor = Candidate->GetOwner();
 			OverlapInfos.push_back(Info);
+
+			// ========== Hit 이벤트 처리 (블로킹 충돌) ==========
+			if (bGenerateHitEvents && bBlockComponent && Candidate->bBlockComponent)
+			{
+				// Hit 이벤트 발생 (양쪽이 모두 Block일 때)
+				FHitResult HitResult;
+				HitResult.Component = Candidate;
+				HitResult.Actor = Candidate->GetOwner();
+				HitResult.ImpactPoint = (GetWorldLocation() + Candidate->GetWorldLocation()) * 0.5f;
+				HitResult.ImpactNormal = (GetWorldLocation() - Candidate->GetWorldLocation()).GetNormalized();
+				HitResult.Distance = FVector::Dist(GetWorldLocation(), Candidate->GetWorldLocation());
+
+				FVector NormalImpulse = FVector::ZeroVector();  // 물리 엔진 연동 시 계산
+				OnComponentHit.BroadCast(this, Candidate->GetOwner(), Candidate, NormalImpulse, HitResult);
+			}
+		}
+	}
+
+	// ========== 델리게이트 호출: BeginOverlap / EndOverlap ==========
+
+	if (bGenerateOverlapEvents)
+	{
+		// 빠른 검색을 위해 Set으로 변환
+		TSet<UPrimitiveComponent*> CurrentSet;
+		for (const FOverlapInfo& Info : OverlapInfos)
+		{
+			CurrentSet.insert(Info.OtherComponent);
+		}
+
+		TSet<UPrimitiveComponent*> PreviousSet;
+		for (const FOverlapInfo& Info : PreviousOverlapInfos)
+		{
+			PreviousSet.insert(Info.OtherComponent);
+		}
+
+		// BeginOverlap: 현재 Set에 있지만 이전 Set에 없는 것
+		for (const FOverlapInfo& CurrentInfo : OverlapInfos)
+		{
+			if (PreviousSet.find(CurrentInfo.OtherComponent) == PreviousSet.end())
+			{
+				// 새로 시작된 충돌
+				FHitResult SweepResult;
+				OnComponentBeginOverlap.BroadCast(
+					this,
+					CurrentInfo.OtherActor,
+					CurrentInfo.OtherComponent,
+					0,      // OtherBodyIndex (미사용)
+					false,  // bFromSweep (미사용)
+					SweepResult
+				);
+			}
+		}
+
+		// EndOverlap: 이전 Set에 있지만 현재 Set에 없는 것
+		for (const FOverlapInfo& PrevInfo : PreviousOverlapInfos)
+		{
+			if (CurrentSet.find(PrevInfo.OtherComponent) == CurrentSet.end())
+			{
+				// 종료된 충돌
+				OnComponentEndOverlap.BroadCast(
+					this,
+					PrevInfo.OtherActor,
+					PrevInfo.OtherComponent,
+					0  // OtherBodyIndex (미사용)
+				);
+			}
 		}
 	}
 }
