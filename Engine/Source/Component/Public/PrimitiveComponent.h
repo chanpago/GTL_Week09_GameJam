@@ -90,7 +90,8 @@ public:
 	// 충돌/오버랩 설정
 	bool bGenerateOverlapEvents = true; // 오버랩 이벤트 생성 여부
     bool bGenerateHitEvents = false;  // Hit 이벤트 생성 여부
-	bool bBlockComponent = false; // 컴포넌트 간 충돌 차단 여부
+	// TODO (SDM) - 추후에 false 시, 오브젝트 통과 불가 설정 추가 필요
+	bool bBlockComponent = true; // 컴포넌트 간 충돌 차단 여부
 
 	// TODO(SDM) - 테스트용 델리게이트
 	int testvalue = 1;
