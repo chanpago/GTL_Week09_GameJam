@@ -10,7 +10,7 @@ return function()
     local ReturnTable = {}
 
     -- Script-owned velocity that drives Tick movement; adjust per actor
-    ReturnTable.Velocity = FVector(0.0, 0.0, 0.0)
+    ReturnTable.Velocity = FVector(10.0, 0.0, 0.0)
 
     function ReturnTable:BeginPlay()
         obj = self.this

@@ -42,6 +42,10 @@ public:
 private:
     FString ScriptName;
     sol::table SelfTable;
+    TArray<int> ActiveCoroutineIDs;  // Track coroutines started by this component
+
+public:
+    void RegisterCoroutine(int coroutineID);
 };
 
 template<typename ...Args>

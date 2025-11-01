@@ -6,38 +6,36 @@ local FVector = EngineTypes.FVector
 -- Return a function that creates a new instance for each Actor
 return function()
     -- Each instance gets its own variables (not shared!)
-    local obj = nil
     local ReturnTable = {}
 
     -- Script-owned velocity that drives Tick movement; adjust per actor
     ReturnTable.Velocity = FVector(0.0, 0.0, 0.0)
 
     function ReturnTable:BeginPlay()
-        obj = self.this
-        if not obj then
+        if not self.this then
             Print("[BeginPlay] Lua script missing actor reference.")
             return
         end
 
-        local uuid = obj.GetUUID and obj:GetUUID() or "Unknown"
-        local display_name = self.Name or (obj.GetName and obj:GetName() or "Actor")
+        local uuid = self.this.GetUUID and self.this:GetUUID() or "Unknown"
+        local display_name = self.Name or (self.this.GetName and self.this:GetName() or "Actor")
         Print(string.format("[BeginPlay] %s (%s)", display_name, uuid))
 
-        if obj.PrintLocation then
-            obj:PrintLocation()
+        if self.this.PrintLocation then
+            self.this:PrintLocation()
         end
     end
 
     function ReturnTable:EndPlay()
-        if not obj then
+        if not self.this then
             return
         end
 
-        local uuid = obj.GetUUID and obj:GetUUID() or "Unknown"
+        local uuid = self.this.GetUUID and self.this:GetUUID() or "Unknown"
         Print(string.format("[EndPlay] %s", uuid))
 
-        if obj.PrintLocation then
-            obj:PrintLocation()
+        if self.this.PrintLocation then
+            self.this:PrintLocation()
         end
     end
 
@@ -58,16 +56,16 @@ return function()
     end
 
     function ReturnTable:Tick(dt)
-        if not obj then
+        if not self.this then
             return
         end
 
         local velocity = self.Velocity or FVector(0.0, 0.0, 0.0)
-        local loc = obj.ActorLocation
-        obj.ActorLocation = loc + velocity * dt
+        local loc = self.this.ActorLocation
+        self.this.ActorLocation = loc + velocity * dt
 
-        if obj.PrintLocation then
-            obj:PrintLocation()
+        if self.this.PrintLocation then
+            self.this:PrintLocation()
         end
     end
 

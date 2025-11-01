@@ -5,6 +5,7 @@
 #include "Actor/Public/Actor.h"
 #include "Global/Vector.h"
 #include "Manager/Path/Public/PathManager.h"
+#include "Manager/Coroutine/Public/LuaCoroutineManager.h"
 
 #include <iostream>
 #include <filesystem>
@@ -135,32 +136,78 @@ FLuaScriptManager::FLuaScriptManager()
 {
 }
 
-FLuaScriptManager::~FLuaScriptManager() = default;
+FLuaScriptManager::~FLuaScriptManager()
+{
+    // Ensure proper cleanup order to prevent Access Violations during shutdown
+
+    // Only cleanup if we haven't already shut down
+    if (bIsStartedUp)
+    {
+        // ShutDown() handles all cleanup properly
+        ShutDown();
+    }
+    else if (LuaState)
+    {
+        // If somehow LuaState exists but we're not started up, clean it anyway
+        ScriptCache.clear();
+        ActiveComponents.clear();
+        LuaState.reset();
+    }
+
+    std::cout << "[Shutdown] FLuaScriptManager destroyed safely." << std::endl;
+}
 
 void FLuaScriptManager::StartUp()
 {
     LuaState = std::make_unique<sol::state>();
 
-    // Open standard libraries (io, string, math, etc.)
-    LuaState->open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::table);
+    // Open standard libraries (io, string, math, coroutine, etc.)
+    LuaState->open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::table, sol::lib::coroutine);
 
     std::cout << "LuaManager started." << std::endl;
 
     // Bind all C++ types
     BindTypes();
+
+    // Start coroutine manager
+    FLuaCoroutineManager::GetInstance().StartUp();
+
     bIsStartedUp = true;
 }
 
 void FLuaScriptManager::ShutDown()
 {
+    if (!bIsStartedUp)
+    {
+        return; // Already shut down
+    }
+
+    std::cout << "[Shutdown] FLuaScriptManager shutting down..." << std::endl;
+
+    // 1. Shutdown coroutine manager first (stops all coroutines)
+    FLuaCoroutineManager::GetInstance().ShutDown();
+
+    // 2. Clear all Lua objects BEFORE destroying LuaState
+    //    This is critical - sol::object destructors need valid LuaState
+    ScriptCache.clear();
+    ActiveComponents.clear();
+
+    // 3. Now it's safe to destroy the Lua state
     LuaState.reset();
-    std::cout << "LuaManager shut down." << std::endl;
+
+    // 4. Mark as shut down
+    bIsStartedUp = false;
+
+    std::cout << "[Shutdown] FLuaScriptManager shut down successfully." << std::endl;
 }
 
 void FLuaScriptManager::Tick(float deltaTime)
 {
     // Hot reload check (optional)
     HotReloadLuaScript();
+
+    // Update coroutines
+    FLuaCoroutineManager::GetInstance().Tick(deltaTime);
 }
 
 void FLuaScriptManager::RegisterComponent(ULuaScriptComponent* component)

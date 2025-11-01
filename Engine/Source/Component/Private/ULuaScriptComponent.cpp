@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Component/Public/ULuaScriptComponent.h"
 #include "Manager/Lua/Public/LuaScriptManager.h"
+#include "Manager/Coroutine/Public/LuaCoroutineManager.h"
 #include "Actor/Public/Actor.h"
 #include "Utility/Public/JsonSerializer.h"
 
@@ -105,17 +106,29 @@ void ULuaScriptComponent::EndPlay()
 {
     Super::EndPlay();
 
-    if (SelfTable.valid() && SelfTable["EndPlay"].valid())
+    // FIRST: Invalidate the actor reference in Lua to prevent access
+    if (SelfTable.valid())
     {
-        ActivateFunction("EndPlay");
+        SelfTable["this"] = sol::nil;  // ✅ 먼저 Actor 포인터 무효화!
+
+        if (SelfTable["EndPlay"].valid())
+        {
+            ActivateFunction("EndPlay");
+        }
     }
+
+    // Stop all coroutines started by this component
+    for (int coroutineID : ActiveCoroutineIDs)
+    {
+        std::cout << "[Component] Stopping coroutine " << coroutineID << " (EndPlay)" << std::endl;
+        FLuaCoroutineManager::GetInstance().StopCoroutine(coroutineID);
+    }
+    ActiveCoroutineIDs.clear();
 
     // Unregister from LuaScriptManager
     FLuaScriptManager::GetInstance().UnregisterComponent(this);
 
     // Invalidate the Lua table to prevent any further access
-    // This ensures that if Tick is somehow called after EndPlay,
-    // it will be safely ignored
     SelfTable = sol::nil;
 }
 
@@ -151,4 +164,9 @@ bool ULuaScriptComponent::LoadScript()
     }
 
     return true;
+}
+
+void ULuaScriptComponent::RegisterCoroutine(int coroutineID)
+{
+    ActiveCoroutineIDs.push_back(coroutineID);
 }
