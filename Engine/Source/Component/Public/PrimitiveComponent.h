@@ -88,9 +88,17 @@ protected:
    ========================= */
 public:
 	// 충돌/오버랩 설정
-    bool bGenerateOverlapEvents = true;
+	bool bGenerateOverlapEvents = true; // 오버랩 이벤트 생성 여부
     bool bGenerateHitEvents = false;  // Hit 이벤트 생성 여부
-	bool bBlockComponent = false;
+	bool bBlockComponent = false; // 컴포넌트 간 충돌 차단 여부
+
+	// TODO(SDM) - 테스트용 델리게이트
+	int testvalue = 1;
+	void TestFunc(int value)
+	{
+		UE_LOG("delegate test %d", value);
+
+	}
 		
 	// 간단 오버랩 정보
 	struct FOverlapInfo
@@ -152,6 +160,7 @@ public:
 	 * @param Hit Hit 결과 정보
 	 */
 	TDelegate<UPrimitiveComponent*, AActor*, UPrimitiveComponent*, FVector, const FHitResult&> OnComponentHit;
+	TDelegate<int> TestDelegate;
 protected:
 	TArray<FOverlapInfo> OverlapInfos;
 	TArray<FOverlapInfo> PreviousOverlapInfos;  // 이전 프레임 정보

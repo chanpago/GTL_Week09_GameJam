@@ -21,6 +21,8 @@ IMPLEMENT_ABSTRACT_CLASS(UPrimitiveComponent, USceneComponent)
 UPrimitiveComponent::UPrimitiveComponent()
 {
 	bCanEverTick = true;
+	TestDelegate.AddDynamic(this, &UPrimitiveComponent::TestFunc);
+
 }
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)
@@ -168,6 +170,11 @@ UObject* UPrimitiveComponent::Duplicate()
 	PrimitiveComponent->bVisible = bVisible;
 	PrimitiveComponent->bReceivesDecals = bReceivesDecals;
 
+	// Collision Settings
+	PrimitiveComponent->bGenerateOverlapEvents = bGenerateOverlapEvents;
+	PrimitiveComponent->bGenerateHitEvents = bGenerateHitEvents;
+	PrimitiveComponent->bBlockComponent = bBlockComponent;
+
 	PrimitiveComponent->Vertices = Vertices;
 	PrimitiveComponent->Indices = Indices;
 	PrimitiveComponent->VertexBuffer = VertexBuffer;
@@ -194,13 +201,33 @@ void UPrimitiveComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 
 	if (bInIsLoading)
 	{
+		// Visibility
 		FString VisibleString;
 		FJsonSerializer::ReadString(InOutHandle, "bVisible", VisibleString, "true");
 		SetVisibility(VisibleString == "true");
+
+		// Collision Settings
+		FString GenerateOverlapString;
+		FJsonSerializer::ReadString(InOutHandle, "bGenerateOverlapEvents", GenerateOverlapString, "true");
+		bGenerateOverlapEvents = (GenerateOverlapString == "true");
+
+		FString GenerateHitString;
+		FJsonSerializer::ReadString(InOutHandle, "bGenerateHitEvents", GenerateHitString, "false");
+		bGenerateHitEvents = (GenerateHitString == "true");
+
+		FString BlockComponentString;
+		FJsonSerializer::ReadString(InOutHandle, "bBlockComponent", BlockComponentString, "false");
+		bBlockComponent = (BlockComponentString == "true");
 	}
 	else
 	{
+		// Visibility
 		InOutHandle["bVisible"] = bVisible ? "true" : "false";
+
+		// Collision Settings
+		InOutHandle["bGenerateOverlapEvents"] = bGenerateOverlapEvents ? "true" : "false";
+		InOutHandle["bGenerateHitEvents"] = bGenerateHitEvents ? "true" : "false";
+		InOutHandle["bBlockComponent"] = bBlockComponent ? "true" : "false";
 	}
 
 }
@@ -312,7 +339,6 @@ void UPrimitiveComponent::UpdateOverlaps()
 			Candidates.push_back(DynamicPrim);
 		}
 	}
-
 	// ========== 2차 충돌 검사: Narrow Phase ==========
 
 	// ShapeComponent인지 확인 (Shape가 아니면 정밀 검사 불가)
@@ -369,11 +395,16 @@ void UPrimitiveComponent::UpdateOverlaps()
 				HitResult.Distance = FVector::Dist(GetWorldLocation(), Candidate->GetWorldLocation());
 
 				FVector NormalImpulse = FVector::ZeroVector();  // 물리 엔진 연동 시 계산
-				OnComponentHit.BroadCast(this, Candidate->GetOwner(), Candidate, NormalImpulse, HitResult);
+				//OnComponentHit.BroadCast(this, Candidate->GetOwner(), Candidate, NormalImpulse, HitResult);
+				// TODO(SDM): 디버그용 로그
+				TestDelegate.BroadCast(testvalue);
+				testvalue++;
+				UE_LOG("BroadCast, 숫자 떠야댐");
 			}
 		}
 	}
-
+	// TODO(SDM): 디버그용 로그
+	UE_LOG("됨");
 	// ========== 델리게이트 호출: BeginOverlap / EndOverlap ==========
 
 	if (bGenerateOverlapEvents)

@@ -23,8 +23,15 @@ void USphereComponentWidget::RenderWidget()
     {
         SphereComponent->bGenerateOverlapEvents = GenerateOverlap;
     }
+
+    bool GenerateHit = SphereComponent->bGenerateHitEvents;
+    if (ImGui::Checkbox("Generate Hit Events", &GenerateHit))
+    {
+        SphereComponent->bGenerateHitEvents = GenerateHit;
+    }
+
     bool BlockComponent = SphereComponent->bBlockComponent;
-    if (ImGui::Checkbox("Block Component (Hit)", &BlockComponent))
+    if (ImGui::Checkbox("Block Component", &BlockComponent))
     {
         SphereComponent->bBlockComponent = BlockComponent;
     }

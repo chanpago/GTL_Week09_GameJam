@@ -23,8 +23,15 @@ void UCapsuleComponentWidget::RenderWidget()
     {
         CapsuleComponent->bGenerateOverlapEvents = GenerateOverlap;
     }
+
+    bool GenerateHit = CapsuleComponent->bGenerateHitEvents;
+    if (ImGui::Checkbox("Generate Hit Events", &GenerateHit))
+    {
+        CapsuleComponent->bGenerateHitEvents = GenerateHit;
+    }
+
     bool BlockComponent = CapsuleComponent->bBlockComponent;
-    if (ImGui::Checkbox("Block Component (Hit)", &BlockComponent))
+    if (ImGui::Checkbox("Block Component", &BlockComponent))
     {
         CapsuleComponent->bBlockComponent = BlockComponent;
     }

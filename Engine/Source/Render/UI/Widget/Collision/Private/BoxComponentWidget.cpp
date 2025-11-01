@@ -28,8 +28,17 @@ void UBoxComponentWidget::RenderWidget()
     {
         BoxComponent->bGenerateOverlapEvents = GenerateOverlap;
     }
+
+    // Hit 옵션 (새로 추가)
+    bool GenerateHit = BoxComponent->bGenerateHitEvents;
+    if (ImGui::Checkbox("Generate Hit Events", &GenerateHit))
+    {
+        BoxComponent->bGenerateHitEvents = GenerateHit;
+    }
+
+    // Block 옵션
     bool BlockComponent = BoxComponent->bBlockComponent;
-    if (ImGui::Checkbox("Block Component (Hit)", &BlockComponent))
+    if (ImGui::Checkbox("Block Component", &BlockComponent))
     {
         BoxComponent->bBlockComponent = BlockComponent;
     }
