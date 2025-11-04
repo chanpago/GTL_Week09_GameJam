@@ -402,8 +402,9 @@ void UPrimitiveComponent::UpdateOverlaps()
 				FVector NormalImpulse = FVector::ZeroVector();  // 물리 엔진 연동 시 계산
 				//OnComponentHit.BroadCast(this, Candidate->GetOwner(), Candidate, NormalImpulse, HitResult);
 				// TODO(SDM): 디버그용 로그
-				TestDelegate.BroadCast(testvalue);
-				testvalue++;
+				/*TestDelegate.BroadCast(testvalue);
+				testvalue++;*/
+				UE_LOG("히트 이벤트 발생");
 			}
 		}
 	}
@@ -439,6 +440,7 @@ void UPrimitiveComponent::UpdateOverlaps()
 					false,  // bFromSweep (미사용)
 					SweepResult
 				);
+			UE_LOG("오버랩 시작");  // ✅ if문 안으로 이동 (필요시 활성화)
 			}
 		}
 
@@ -454,6 +456,7 @@ void UPrimitiveComponent::UpdateOverlaps()
 					PrevInfo.OtherComponent,
 					0  // OtherBodyIndex (미사용)
 				);
+			UE_LOG("오버랩 종료");  // ✅ if문 안으로 이동 (필요시 활성화)
 			}
 		}
 	}

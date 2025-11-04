@@ -734,16 +734,25 @@ namespace CollisionUtil
 			return false;
 		}
 
-		// 캡슐의 중심축(선분) 계산
+		// 월드 스케일 가져오기
+		FVector ScaleA = CapsuleA->GetWorldScale3D();
+		FVector ScaleB = CapsuleB->GetWorldScale3D();
+
+		// Capsule은 XY 평면의 스케일을 반지름에, Z 스케일을 높이에 적용
+		// 반지름은 XY 중 최대값 사용
+		float RadiusScaleA = (ScaleA.X > ScaleA.Y) ? ScaleA.X : ScaleA.Y;
+		float RadiusScaleB = (ScaleB.X > ScaleB.Y) ? ScaleB.X : ScaleB.Y;
+
+		// 캡슐의 중심축(선분) 계산 (월드 스케일 적용)
 		FVector CenterA = CapsuleA->GetWorldLocation();
-		float HalfHeightA = CapsuleA->GetCapsuleHalfHeight();
+		float HalfHeightA = CapsuleA->GetCapsuleHalfHeight() * ScaleA.Z;
 		FVector UpDirectionA = CapsuleA->GetUpVector();
 
 		FVector SegmentAStart = CenterA - UpDirectionA * HalfHeightA;
 		FVector SegmentAEnd = CenterA + UpDirectionA * HalfHeightA;
 
 		FVector CenterB = CapsuleB->GetWorldLocation();
-		float HalfHeightB = CapsuleB->GetCapsuleHalfHeight();
+		float HalfHeightB = CapsuleB->GetCapsuleHalfHeight() * ScaleB.Z;
 		FVector UpDirectionB = CapsuleB->GetUpVector();
 
 		FVector SegmentBStart = CenterB - UpDirectionB * HalfHeightB;
@@ -757,8 +766,10 @@ namespace CollisionUtil
 			ClosestPointA, ClosestPointB
 		);
 
-		// 최단 거리가 두 반지름의 합보다 작으면 충돌
-		float RadiusSum = CapsuleA->GetCapsuleRadius() + CapsuleB->GetCapsuleRadius();
+		// 최단 거리가 두 반지름의 합보다 작으면 충돌 (월드 스케일 적용)
+		float RadiusA = CapsuleA->GetCapsuleRadius() * RadiusScaleA;
+		float RadiusB = CapsuleB->GetCapsuleRadius() * RadiusScaleB;
+		float RadiusSum = RadiusA + RadiusB;
 		return Distance <= RadiusSum;
 	}
 
@@ -773,9 +784,16 @@ namespace CollisionUtil
 			return false;
 		}
 
-		// 캡슐의 중심축(선분) 계산
+		// 월드 스케일 가져오기
+		FVector CapsuleScale = Capsule->GetWorldScale3D();
+		FVector SphereScale = Sphere->GetWorldScale3D();
+
+		// Capsule 스케일 적용
+		float CapsuleRadiusScale = (CapsuleScale.X > CapsuleScale.Y) ? CapsuleScale.X : CapsuleScale.Y;
+
+		// 캡슐의 중심축(선분) 계산 (월드 스케일 적용)
 		FVector CapsuleCenter = Capsule->GetWorldLocation();
-		float CapsuleHalfHeight = Capsule->GetCapsuleHalfHeight();
+		float CapsuleHalfHeight = Capsule->GetCapsuleHalfHeight() * CapsuleScale.Z;
 		FVector CapsuleUpDirection = Capsule->GetUpVector();
 
 		FVector SegmentStart = CapsuleCenter - CapsuleUpDirection * CapsuleHalfHeight;
@@ -796,8 +814,11 @@ namespace CollisionUtil
 		FVector ClosestPointOnSegment = SegmentStart + ProjectionParameter * LineDirection;
 		float Distance = FVector::Dist(Sphere->GetWorldLocation(), ClosestPointOnSegment);
 
-		// 최단 거리가 두 반지름의 합보다 작으면 충돌
-		float RadiusSum = Capsule->GetCapsuleRadius() + Sphere->GetSphereRadius();
+		// 최단 거리가 두 반지름의 합보다 작으면 충돌 (월드 스케일 적용)
+		float SphereMaxScale = Max3(SphereScale.X, SphereScale.Y, SphereScale.Z);
+		float CapsuleRadius = Capsule->GetCapsuleRadius() * CapsuleRadiusScale;
+		float SphereRadius = Sphere->GetSphereRadius() * SphereMaxScale;
+		float RadiusSum = CapsuleRadius + SphereRadius;
 		return Distance <= RadiusSum;
 	}
 
@@ -817,9 +838,13 @@ namespace CollisionUtil
 			return false;
 		}
 
-		// 캡슐의 중심축(선분) 계산
+		// 월드 스케일 가져오기
+		FVector CapsuleScale = Capsule->GetWorldScale3D();
+		float CapsuleRadiusScale = (CapsuleScale.X > CapsuleScale.Y) ? CapsuleScale.X : CapsuleScale.Y;
+
+		// 캡슐의 중심축(선분) 계산 (월드 스케일 적용)
 		FVector CapsuleCenter = Capsule->GetWorldLocation();
-		float CapsuleHalfHeight = Capsule->GetCapsuleHalfHeight();
+		float CapsuleHalfHeight = Capsule->GetCapsuleHalfHeight() * CapsuleScale.Z;
 		FVector CapsuleUpDirection = Capsule->GetUpVector();
 
 		FVector SegmentStart = CapsuleCenter - CapsuleUpDirection * CapsuleHalfHeight;
@@ -834,8 +859,9 @@ namespace CollisionUtil
 		// 선분과 OBB 간의 최단 거리 계산
 		float Distance = DistanceSegmentToOBB(SegmentStart, SegmentEnd, OBB);
 
-		// 최단 거리가 캡슐 반지름보다 작으면 충돌
-		return Distance <= Capsule->GetCapsuleRadius();
+		// 최단 거리가 캡슐 반지름보다 작으면 충돌 (월드 스케일 적용)
+		float CapsuleRadius = Capsule->GetCapsuleRadius() * CapsuleRadiusScale;
+		return Distance <= CapsuleRadius;
 	}
 
 	inline bool TestOverlap(const UBoxComponent* Box, const UCapsuleComponent* Capsule)
