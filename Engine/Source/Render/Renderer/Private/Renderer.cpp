@@ -1010,11 +1010,8 @@ void URenderer::Update()
     }
 
     // ========================================
-    // 포스트 프로세싱 체인 (인덱스 기반 핑퐁 렌더링)
+    // 포스트 프로세싱 체인 (Ping-Pong Rendering)
     // ========================================
-    // 파이프라인: SceneColor → [FXAA] → [Letterbox] → 백버퍼
-    // 각 패스는 PingPongA(0) ↔ PingPongB(1)를 번갈아 사용
-    // 마지막 패스는 항상 백버퍼(nullptr)로 출력
 
     ID3D11RenderTargetView* NullRTV[] = { nullptr };
     GetDeviceContext()->OMSetRenderTargets(1, NullRTV, nullptr);
@@ -1030,65 +1027,83 @@ void URenderer::Update()
     FRect ActiveRect = UViewportManager::GetInstance().GetActiveViewportRect();
     float CurrentAspect = static_cast<float>(ActiveRect.Width) / static_cast<float>(ActiveRect.Height);
 
-    // 패스가 하나도 없으면 SceneColor를 백버퍼로 복사
+    // 패스가 하나도 없으면 이미 백버퍼에 그려진 것이므로 냅둠
     if (PassCount == 0)
     {
-        // 복사 패스: SceneColor → 백버퍼
-        // 현재 종횡비로 설정하면 BarHeight = 0이 되어 검은 바 없이 전체 출력
-        LetterboxPass->SetTargetAspectRatio(CurrentAspect);
-        LetterboxPass->SetInputTexture(DeviceResources->GetSceneColorShaderResourceView());
-        LetterboxPass->SetOutputRenderTarget(nullptr); // 백버퍼
-
-        UE_LOG("PostProcessing: 복사 패스 실행 (PassCount = 0, AspectRatio = %.3f)", CurrentAspect);
-
-        LetterboxPass->Execute(RenderingContext);
+        // 아무것도 안함 - 이미 Frame(BackBuffer)에 3D 씬이 렌더링됨
     }
-    else
+	else if (PassCount == 1)
     {
-        // 핑퐁 인덱스: 각 패스의 입출력 타겟을 인덱스로 계산
-        int32 CurrentPassIndex = 0;
-
-        // FXAA 패스 실행 (활성화된 경우)
+		// 단일 패스: Frame → SceneColor → Frame
         if (bFXAAEnabled)
         {
-            const bool bIsLastPass = (CurrentPassIndex == PassCount - 1);
+			// Frame(BackBuffer) → SceneColor (FXAA)
+			FXAAPass->SetInputTexture(DeviceResources->GetSceneColorSRV()); // BackBuffer SRV
+			FXAAPass->SetOutputRenderTarget(DeviceResources->GetSceneColorRenderTargetView()); // SceneColor
+			FXAAPass->Execute(RenderingContext);
 
-            // 입력: 첫 패스는 항상 SceneColor
-            // 출력: 마지막 패스면 백버퍼, 아니면 PingPong[CurrentPassIndex % 2]
-            ID3D11RenderTargetView* OutputRTV = bIsLastPass
-                ? nullptr
-                : DeviceResources->GetPingPongRenderTargetView(CurrentPassIndex % 2);
+			// SceneColor에 썼으므로 언바인드
+			GetDeviceContext()->OMSetRenderTargets(1, NullRTV, nullptr);
 
-            FXAAPass->SetOutputRenderTarget(OutputRTV);
-            FXAAPass->Execute(RenderingContext);
-
-            CurrentPassIndex++;
+			// SceneColor → Frame 복사
+			LetterboxPass->SetTargetAspectRatio(CurrentAspect);
+			LetterboxPass->SetInputTexture(DeviceResources->GetSceneColorShaderResourceView());
+			LetterboxPass->SetOutputRenderTarget(nullptr); // BackBuffer
+			LetterboxPass->Execute(RenderingContext);
         }
-
-        // Letterbox 패스 실행 (활성화된 경우)
-        if (bLetterboxEnabled)
+        else if (bLetterboxEnabled)
         {
-            const bool bIsLastPass = (CurrentPassIndex == PassCount - 1);
-            const bool bIsFirstPass = (CurrentPassIndex == 0);
+			// Frame(BackBuffer) → SceneColor (Letterbox)
+			LetterboxPass->SetTargetAspectRatio(LetterboxAspectRatio);
+			LetterboxPass->SetInputTexture(DeviceResources->GetSceneColorSRV()); // BackBuffer SRV
+			LetterboxPass->SetOutputRenderTarget(DeviceResources->GetSceneColorRenderTargetView()); // SceneColor
+			LetterboxPass->Execute(RenderingContext);
 
-            // 입력: 첫 패스면 SceneColor, 아니면 이전 패스의 출력 (PingPong[(CurrentPassIndex - 1) % 2])
-            ID3D11ShaderResourceView* InputSRV = bIsFirstPass
-                ? DeviceResources->GetSceneColorShaderResourceView()
-                : DeviceResources->GetPingPongShaderResourceView((CurrentPassIndex - 1) % 2);
+			// SceneColor에 썼으므로 언바인드
+			GetDeviceContext()->OMSetRenderTargets(1, NullRTV, nullptr);
 
-            // 출력: 마지막 패스면 백버퍼, 아니면 PingPong[CurrentPassIndex % 2]
-            ID3D11RenderTargetView* OutputRTV = bIsLastPass
-                ? nullptr
-                : DeviceResources->GetPingPongRenderTargetView(CurrentPassIndex % 2);
-
-            LetterboxPass->SetTargetAspectRatio(LetterboxAspectRatio);
-            LetterboxPass->SetInputTexture(InputSRV);
-            LetterboxPass->SetOutputRenderTarget(OutputRTV);
-            LetterboxPass->Execute(RenderingContext);
-
-            CurrentPassIndex++;
+			// SceneColor → Frame 복사
+			LetterboxPass->SetTargetAspectRatio(LetterboxAspectRatio);
+			LetterboxPass->SetInputTexture(DeviceResources->GetSceneColorShaderResourceView());
+			LetterboxPass->SetOutputRenderTarget(nullptr); // BackBuffer
+			LetterboxPass->Execute(RenderingContext);
         }
     }
+    else // PassCount >= 2
+    {
+		// 핑퐁 렌더링: Frame ↔ SceneColor
+		// Pass 1: Frame → SceneColor (FXAA)
+		// Pass 2: SceneColor → Frame (Letterbox)
+		// 두 번하면 다시 Frame에 그려지는 것이므로 복사할 필요 없음
+
+        // 첫 번째 패스: Frame(BackBuffer) → SceneColor (FXAA)
+        if (bFXAAEnabled)
+        {
+			FXAAPass->SetInputTexture(DeviceResources->GetSceneColorSRV()); // BackBuffer SRV
+			FXAAPass->SetOutputRenderTarget(DeviceResources->GetSceneColorRenderTargetView()); // SceneColor
+			FXAAPass->Execute(RenderingContext);
+
+			// SceneColor에 썼으므로 언바인드
+			GetDeviceContext()->OMSetRenderTargets(1, NullRTV, nullptr);
+        }
+
+        // 두 번째 패스: SceneColor → Frame(BackBuffer) (Letterbox)
+        if (bLetterboxEnabled)
+        {
+			LetterboxPass->SetTargetAspectRatio(LetterboxAspectRatio);
+			LetterboxPass->SetInputTexture(DeviceResources->GetSceneColorShaderResourceView());
+			LetterboxPass->SetOutputRenderTarget(nullptr); // BackBuffer
+			LetterboxPass->Execute(RenderingContext);
+        }
+    }
+	// 밝아지는 이유 : swapchain에 SRGB인가 하는게잇는데 이걸 지우면 어두워짐
+	// 감마보정 하면 그대로나옴
+	// 직접 감마 보정을 해줘야함
+
+    // 포스트 프로세싱 완료 후 UI 렌더링을 위해 BackBuffer로 렌더 타겟 복원
+    ID3D11RenderTargetView* BackBufferRTV = DeviceResources->GetRenderTargetView();
+    GetDeviceContext()->OMSetRenderTargets(1, &BackBufferRTV, nullptr);
+    DeviceResources->UpdateViewport();
 
     // D2D 오버레이는 포스트 프로세싱 후 각 뷰포트마다 독립적으로 렌더링
     for (int32 ViewportIndex = StartIndex; ViewportIndex < EndIndex; ++ViewportIndex)
@@ -1128,23 +1143,15 @@ void URenderer::Update()
 
 void URenderer::RenderBegin() const
 {
+	auto* RenderTargetView = DeviceResources->GetRenderTargetView();
+	GetDeviceContext()->ClearRenderTargetView(RenderTargetView, ClearColor);
+
+	// @TODO: The clear color for the normal buffer should be a specific value (e.g., {0.5, 0.5, 1.0, 1.0})
+	auto* NormalRenderTargetView = DeviceResources->GetNormalRenderTargetView();
+	GetDeviceContext()->ClearRenderTargetView(NormalRenderTargetView, ClearColor);
+
 	auto* DepthStencilView = DeviceResources->GetDepthStencilView();
 	GetDeviceContext()->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	// 백버퍼를 검은색으로 클리어 (메뉴바/상태바 영역을 검은색으로 만들기 위함)
-	auto* BackBufferRTV = DeviceResources->GetRenderTargetView();
-	static const FLOAT BlackColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	GetDeviceContext()->ClearRenderTargetView(BackBufferRTV, BlackColor);
-
-	// 포스트 프로세싱 체인 일관성을 위해 항상 오프스크린 버퍼(SceneColor)에 렌더링
-	// 포스트 프로세싱이 최종적으로 백버퍼로 복사함
-	auto* SceneColorRenderTargetView = DeviceResources->GetSceneColorRenderTargetView();
-	auto* NormalRenderTargetView = DeviceResources->GetNormalRenderTargetView();
-	GetDeviceContext()->ClearRenderTargetView(SceneColorRenderTargetView, ClearColor);
-	// @TODO: The clear color for the normal buffer should be a specific value (e.g., {0.5, 0.5, 1.0, 1.0})
-	GetDeviceContext()->ClearRenderTargetView(NormalRenderTargetView, ClearColor);
-	ID3D11RenderTargetView* rtvs[] = { SceneColorRenderTargetView, NormalRenderTargetView };
-	GetDeviceContext()->OMSetRenderTargets(2, rtvs, DepthStencilView);
 
 	// SceneColor는 전체 백버퍼 크기로 렌더링 (Letterbox가 나중에 축소)
 	DeviceResources->UpdateViewport();
@@ -1369,7 +1376,6 @@ void URenderer::OnResize(uint32 InWidth, uint32 InHeight) const
     if (!DeviceResources || !GetDeviceContext() || !GetSwapChain()) return;
 
     DeviceResources->ReleaseFactories();
-    DeviceResources->ReleasePingPongTargets();
     DeviceResources->ReleaseSceneColorTarget();
 	DeviceResources->ReleaseFrameBuffer();
 	DeviceResources->ReleaseDepthBuffer();
@@ -1387,7 +1393,6 @@ void URenderer::OnResize(uint32 InWidth, uint32 InHeight) const
 	DeviceResources->CreateFrameBuffer();
 	DeviceResources->CreateDepthBuffer();
 	DeviceResources->CreateNormalBuffer();
-    DeviceResources->CreatePingPongTargets();
     DeviceResources->CreateFactories();
 
     ID3D11RenderTargetView* targetView = bFXAAEnabled

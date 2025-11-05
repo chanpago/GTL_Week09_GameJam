@@ -31,14 +31,7 @@ void FPointLightPass::Execute(FRenderingContext& Context)
 	const auto& Renderer = URenderer::GetInstance();
     const auto& DeviceResources = Renderer.GetDeviceResources();
     ID3D11RenderTargetView* RTV = nullptr;
-    if (Renderer.GetFXAA())
-    {
-        RTV = DeviceResources->GetSceneColorRenderTargetView();	
-    }
-    else
-    {
-        RTV = DeviceResources->GetRenderTargetView();	
-    }
+    RTV = DeviceResources->GetRenderTargetView();	
     ID3D11RenderTargetView* RTVs[1] = { RTV };
     Pipeline->SetRenderTargets(1, RTVs, nullptr);
     auto RS = FRenderResourceFactory::GetRasterizerState( { ECullMode::None, EFillMode::Solid }); 
@@ -46,15 +39,7 @@ void FPointLightPass::Execute(FRenderingContext& Context)
     FPipelineInfo PipelineInfo = { InputLayout, VS, RS, DS, PS, BS };
     Pipeline->UpdatePipeline(PipelineInfo);
     Pipeline->SetVertexBuffer(VertexBuffer, sizeof(FNormalVertex));
-
-    if (Renderer.GetFXAA())
-    {
-        Pipeline->SetShaderResourceView(0, EShaderType::PS, DeviceResources->GetSceneColorShaderResourceView());
-    }
-    else
-    {
-        Pipeline->SetShaderResourceView(0, EShaderType::PS, DeviceResources->GetSceneColorSRV());
-    }
+    Pipeline->SetShaderResourceView(0, EShaderType::PS, DeviceResources->GetSceneColorSRV());
     Pipeline->SetShaderResourceView(1, EShaderType::PS, DeviceResources->GetNormalSRV());
     Pipeline->SetShaderResourceView(2, EShaderType::PS, DeviceResources->GetDepthSRV());
     Pipeline->SetSamplerState(0, EShaderType::PS, PointLightSampler);

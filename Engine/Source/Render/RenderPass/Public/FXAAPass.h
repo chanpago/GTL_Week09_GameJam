@@ -62,6 +62,12 @@ public:
 	void SetSamplerState(ID3D11SamplerState* InSampler) { SamplerState = InSampler; }
 
 	/**
+	 * @brief 입력 텍스처를 설정합니다.
+	 * @param InInputSRV 입력 셰이더 리소스 뷰
+	 */
+	void SetInputTexture(ID3D11ShaderResourceView* InInputSRV) { InputSRV = InInputSRV; }
+
+	/**
 	 * @brief 출력 렌더 타겟을 설정합니다.
 	 * nullptr을 전달하면 백버퍼로 렌더링합니다.
 	 * @param InOutputRTV 출력 렌더 타겟 뷰 (nullptr = 백버퍼)
@@ -99,6 +105,9 @@ private:
 
     ID3D11Buffer* FXAAConstantBuffer = nullptr;
     FFXAAConstants FXAAParams{};
+
+    // 입력 텍스처 (nullptr이면 SceneColor 사용)
+    ID3D11ShaderResourceView* InputSRV = nullptr;
 
     // 출력 렌더 타겟 (nullptr이면 백버퍼 사용)
     ID3D11RenderTargetView* OutputRTV = nullptr;

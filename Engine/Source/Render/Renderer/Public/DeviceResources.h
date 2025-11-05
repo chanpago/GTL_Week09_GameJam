@@ -26,9 +26,6 @@ public:
 	void CreateHitProxyTarget();
 	void ReleaseHitProxyTarget();
 
-	// Ping-Pong Render Targets for Post Processing Chain
-	void CreatePingPongTargets();
-	void ReleasePingPongTargets();
 
 	// Direct2D/DirectWrite
 	void CreateFactories();
@@ -54,10 +51,6 @@ public:
 	ID3D11ShaderResourceView* GetHitProxyShaderResourceView() const {return HitProxyTextureSRV; }
 	ID3D11Texture2D* GetHitProxyTexture() const {return HitProxyTexture; }
 
-	// Ping-Pong Buffer Access (Index: 0 = A, 1 = B)
-	ID3D11RenderTargetView* GetPingPongRenderTargetView(int Index) const;
-	ID3D11ShaderResourceView* GetPingPongShaderResourceView(int Index) const;
-	ID3D11Texture2D* GetPingPongTexture(int Index) const;
 
 	const D3D11_VIEWPORT& GetViewportInfo() const { return ViewportInfo; }
 	uint32 GetWidth() const { return Width; }
@@ -107,17 +100,6 @@ private:
 	ID3D11Texture2D* HitProxyTexture = nullptr;
 	ID3D11RenderTargetView* HitProxyTextureRTV = nullptr;
 	ID3D11ShaderResourceView* HitProxyTextureSRV = nullptr;
-
-	// Ping-Pong Render Targets for Post Processing Chain
-	// These buffers are used to alternate between input and output in multiple post-processing passes
-	// Format: R16G16B16A16_FLOAT (HDR support)
-	ID3D11Texture2D* PingPongTextureA = nullptr;
-	ID3D11RenderTargetView* PingPongRenderTargetViewA = nullptr;
-	ID3D11ShaderResourceView* PingPongShaderResourceViewA = nullptr;
-
-	ID3D11Texture2D* PingPongTextureB = nullptr;
-	ID3D11RenderTargetView* PingPongRenderTargetViewB = nullptr;
-	ID3D11ShaderResourceView* PingPongShaderResourceViewB = nullptr;
 
 	D3D11_VIEWPORT ViewportInfo = {};
 

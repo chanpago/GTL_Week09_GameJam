@@ -31,7 +31,8 @@ FFXAAPass::~FFXAAPass()
 
 void FFXAAPass::Execute(FRenderingContext& Context)
 {
-    ID3D11ShaderResourceView* SceneSRV = DeviceResources->GetSceneColorShaderResourceView(); // 오프스크린 컬러입력
+    // 입력 텍스처: InputSRV가 설정되어 있으면 사용, 없으면 SceneColor 사용
+    ID3D11ShaderResourceView* SceneSRV = InputSRV ? InputSRV : DeviceResources->GetSceneColorShaderResourceView();
     if (!SceneSRV)
     {
         return;

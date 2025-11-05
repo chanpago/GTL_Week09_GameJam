@@ -24,14 +24,12 @@ void UDeviceResources::Create(HWND InWindowHandle)
 	CreateDepthBuffer();
 	CreateSceneColorTarget();
 	CreateHitProxyTarget();
-	CreatePingPongTargets();
 	CreateFactories();
 }
 
 void UDeviceResources::Release()
 {
 	ReleaseFactories();
-	ReleasePingPongTargets();
 	ReleaseHitProxyTarget();
 	ReleaseSceneColorTarget();
 	ReleaseFrameBuffer();
@@ -133,7 +131,7 @@ void UDeviceResources::CreateFrameBuffer()
 
 	// 렌더 타겟 뷰 생성
 	D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc = {};
-	framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB; // 색상 포맷
+	framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // 색상 포맷
 	framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
 
 	Device->CreateRenderTargetView(FrameBuffer, &framebufferRTVdesc, &FrameBufferRTV);
@@ -352,163 +350,6 @@ void UDeviceResources::ReleaseHitProxyTarget()
 	SafeRelease(HitProxyTexture);
 }
 
-/**
- * @brief 핑퐁 렌더 타겟들을 생성하는 함수
- * 포스트 프로세싱 체인에서 여러 패스를 연결하기 위해 사용됩니다.
- * PingPongA와 PingPongB를 교차하며 입력/출력으로 사용합니다.
- */
-void UDeviceResources::CreatePingPongTargets()
-{
-	ReleasePingPongTargets();
-
-	if (!Device || Width == 0 || Height == 0)
-	{
-		return;
-	}
-
-	// PingPong 텍스처 설정 (SceneColor와 동일한 HDR 포맷 사용)
-	D3D11_TEXTURE2D_DESC PingPongDesc = {};
-	PingPongDesc.Width = Width;
-	PingPongDesc.Height = Height;
-	PingPongDesc.MipLevels = 1;
-	PingPongDesc.ArraySize = 1;
-	PingPongDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT; // HDR 지원
-	PingPongDesc.SampleDesc.Count = 1;
-	PingPongDesc.SampleDesc.Quality = 0;
-	PingPongDesc.Usage = D3D11_USAGE_DEFAULT;
-	PingPongDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	PingPongDesc.CPUAccessFlags = 0;
-	PingPongDesc.MiscFlags = 0;
-
-	// === PingPongTextureA 생성 ===
-	HRESULT Result = Device->CreateTexture2D(&PingPongDesc, nullptr, &PingPongTextureA);
-	if (FAILED(Result))
-	{
-		UE_LOG_ERROR("DeviceResources: PingPongTextureA 생성 실패");
-		ReleasePingPongTargets();
-		return;
-	}
-
-	Result = Device->CreateRenderTargetView(PingPongTextureA, nullptr, &PingPongRenderTargetViewA);
-	if (FAILED(Result))
-	{
-		UE_LOG_ERROR("DeviceResources: PingPongRenderTargetViewA 생성 실패");
-		ReleasePingPongTargets();
-		return;
-	}
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-	SRVDesc.Format = PingPongDesc.Format;
-	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	SRVDesc.Texture2D.MostDetailedMip = 0;
-	SRVDesc.Texture2D.MipLevels = 1;
-
-	Result = Device->CreateShaderResourceView(PingPongTextureA, &SRVDesc, &PingPongShaderResourceViewA);
-	if (FAILED(Result))
-	{
-		UE_LOG_ERROR("DeviceResources: PingPongShaderResourceViewA 생성 실패");
-		ReleasePingPongTargets();
-		return;
-	}
-
-	// === PingPongTextureB 생성 ===
-	Result = Device->CreateTexture2D(&PingPongDesc, nullptr, &PingPongTextureB);
-	if (FAILED(Result))
-	{
-		UE_LOG_ERROR("DeviceResources: PingPongTextureB 생성 실패");
-		ReleasePingPongTargets();
-		return;
-	}
-
-	Result = Device->CreateRenderTargetView(PingPongTextureB, nullptr, &PingPongRenderTargetViewB);
-	if (FAILED(Result))
-	{
-		UE_LOG_ERROR("DeviceResources: PingPongRenderTargetViewB 생성 실패");
-		ReleasePingPongTargets();
-		return;
-	}
-
-	Result = Device->CreateShaderResourceView(PingPongTextureB, &SRVDesc, &PingPongShaderResourceViewB);
-	if (FAILED(Result))
-	{
-		UE_LOG_ERROR("DeviceResources: PingPongShaderResourceViewB 생성 실패");
-		ReleasePingPongTargets();
-		return;
-	}
-
-	UE_LOG("DeviceResources: PingPong 렌더 타겟 생성 완료 (%dx%d, Format: R16G16B16A16_FLOAT)", Width, Height);
-}
-
-/**
- * @brief 핑퐁 렌더 타겟들을 해제하는 함수
- */
-void UDeviceResources::ReleasePingPongTargets()
-{
-	// PingPongA 해제
-	SafeRelease(PingPongShaderResourceViewA);
-	SafeRelease(PingPongRenderTargetViewA);
-	SafeRelease(PingPongTextureA);
-
-	// PingPongB 해제
-	SafeRelease(PingPongShaderResourceViewB);
-	SafeRelease(PingPongRenderTargetViewB);
-	SafeRelease(PingPongTextureB);
-}
-
-/**
- * @brief 인덱스를 기반으로 핑퐁 RTV를 반환하는 함수
- * @param Index 0 = PingPongA, 1 = PingPongB
- * @return ID3D11RenderTargetView* 해당 인덱스의 RTV (범위를 벗어나면 nullptr)
- */
-ID3D11RenderTargetView* UDeviceResources::GetPingPongRenderTargetView(int Index) const
-{
-	if (Index == 0)
-	{
-		return PingPongRenderTargetViewA;
-	}
-	else if (Index == 1)
-	{
-		return PingPongRenderTargetViewB;
-	}
-	return nullptr;
-}
-
-/**
- * @brief 인덱스를 기반으로 핑퐁 SRV를 반환하는 함수
- * @param Index 0 = PingPongA, 1 = PingPongB
- * @return ID3D11ShaderResourceView* 해당 인덱스의 SRV (범위를 벗어나면 nullptr)
- */
-ID3D11ShaderResourceView* UDeviceResources::GetPingPongShaderResourceView(int Index) const
-{
-	if (Index == 0)
-	{
-		return PingPongShaderResourceViewA;
-	}
-	else if (Index == 1)
-	{
-		return PingPongShaderResourceViewB;
-	}
-	return nullptr;
-}
-
-/**
- * @brief 인덱스를 기반으로 핑퐁 텍스처를 반환하는 함수
- * @param Index 0 = PingPongA, 1 = PingPongB
- * @return ID3D11Texture2D* 해당 인덱스의 Texture (범위를 벗어나면 nullptr)
- */
-ID3D11Texture2D* UDeviceResources::GetPingPongTexture(int Index) const
-{
-	if (Index == 0)
-	{
-		return PingPongTextureA;
-	}
-	else if (Index == 1)
-	{
-		return PingPongTextureB;
-	}
-	return nullptr;
-}
-
 
 void UDeviceResources::CreateDepthBuffer()
 {
@@ -626,18 +467,6 @@ uint64 UDeviceResources::GetTotalRenderTargetMemory() const
 	if (HitProxyTexture)
 	{
 		TotalBytes += PixelCount * 4;
-	}
-
-	// PingPongTextureA: RGBA16F (8 bytes per pixel)
-	if (PingPongTextureA)
-	{
-		TotalBytes += PixelCount * 8;
-	}
-
-	// PingPongTextureB: RGBA16F (8 bytes per pixel)
-	if (PingPongTextureB)
-	{
-		TotalBytes += PixelCount * 8;
 	}
 
 	return TotalBytes;

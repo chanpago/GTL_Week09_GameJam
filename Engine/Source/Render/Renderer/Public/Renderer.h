@@ -108,7 +108,6 @@ public:
 	FViewport* GetViewportClient() const { return ViewportClient; }
 	UPipeline* GetPipeline() const { return Pipeline; }
 	bool GetIsResizing() const { return bIsResizing; }
-	bool GetFXAA() const { return bFXAAEnabled; }
 	bool GetLetterbox() const { return bLetterboxEnabled; }
 	float GetLetterboxAspectRatio() const { return LetterboxAspectRatio; }
 	void SetLetterboxAspectRatio(float AspectRatio) { LetterboxAspectRatio = AspectRatio; }

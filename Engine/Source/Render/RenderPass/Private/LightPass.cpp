@@ -275,14 +275,7 @@ void FLightPass::Execute(FRenderingContext& Context)
 		URenderer& Renderer = URenderer::GetInstance();
 		const auto& DeviceResources = Renderer.GetDeviceResources();
 		ID3D11RenderTargetView* RTV = nullptr;
-		if (Renderer.GetFXAA())
-		{
-			RTV = DeviceResources->GetSceneColorRenderTargetView();
-		}
-		else
-		{
-			RTV = DeviceResources->GetRenderTargetView();
-		}
+		RTV = DeviceResources->GetRenderTargetView();
 		ID3D11RenderTargetView* RTVs[] = { RTV };
 		ID3D11DepthStencilView* DSV = DeviceResources->GetDepthStencilView();
 		Pipeline->SetRenderTargets(1, RTVs, DSV);

@@ -84,14 +84,7 @@ void FStaticMeshPass::Execute(FRenderingContext& Context)
 	 */
 	const auto& DeviceResources = Renderer.GetDeviceResources();
 	ID3D11RenderTargetView* RTV = nullptr;
-	if (Renderer.GetFXAA())
-	{
-		RTV = DeviceResources->GetSceneColorRenderTargetView();	
-	}
-	else
-	{
-		RTV = DeviceResources->GetRenderTargetView();	
-	}
+	RTV = DeviceResources->GetRenderTargetView();	
 	ID3D11RenderTargetView* RTVs[2] = { RTV, DeviceResources->GetNormalRenderTargetView() };
 	ID3D11DepthStencilView* DSV = DeviceResources->GetDepthStencilView();
 	Pipeline->SetRenderTargets(2, RTVs, DSV);
