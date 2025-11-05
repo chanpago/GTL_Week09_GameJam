@@ -23,7 +23,7 @@ mono_crash.*
 [Rr]elease/
 [Rr]eleases/
 [Dd]evelop/
-[Ss]tandalone
+[Ss]tandalone/
 x64/
 x86/
 [Ww][Ii][Nn]32/
