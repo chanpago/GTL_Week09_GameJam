@@ -94,8 +94,13 @@ FVector UCamera::UpdateInput()
 
 void UCamera::Update(const D3D11_VIEWPORT& InViewport, float DeltaTime)
 {
+	// Update smooth transition first (highest priority)
+	if (bIsTransitioning)
+	{
+		UpdateTransition(DeltaTime);
+	}
 	// PIE Mode: Follow Target (불법증축!)
-	if (FollowTarget.IsValid())
+	else if (FollowTarget.IsValid())
 	{
 		FVector TargetLocation = FollowTarget->GetActorLocation();
 		FQuaternion TargetRotation = FollowTarget->GetActorRotation();
@@ -433,4 +438,76 @@ void UCamera::ClearFollowTarget()
 bool UCamera::HasFollowTarget() const
 {
 	return FollowTarget.IsValid();
+}
+
+void UCamera::SmoothMoveTo(
+	const FVector& TargetLocation,
+	const FRotator& TargetRotation,
+	float Duration,
+	ECameraEaseType EaseType)
+{
+	if (Duration <= 0.0f)
+	{
+		// Instant transition
+		RelativeLocation = TargetLocation;
+		RelativeRotation = TargetRotation;
+		bIsTransitioning = false;
+		return;
+	}
+
+	// Store current state as start
+	TransitionStartLocation = RelativeLocation;
+	TransitionStartRotation = RelativeRotation;
+
+	// Store target state
+	TransitionTargetLocation = TargetLocation;
+	TransitionTargetRotation = TargetRotation;
+
+	// Initialize transition
+	TransitionDuration = Duration;
+	TransitionTimeRemaining = Duration;
+	TransitionEaseType = EaseType;
+	bIsTransitioning = true;
+}
+
+void UCamera::StopSmoothMove()
+{
+	bIsTransitioning = false;
+	TransitionTimeRemaining = 0.0f;
+}
+
+void UCamera::UpdateTransition(float DeltaTime)
+{
+	if (!bIsTransitioning)
+	{
+		return;
+	}
+
+	TransitionTimeRemaining -= DeltaTime;
+
+	// Calculate alpha (0 to 1)
+	float RawAlpha = 1.0f - (TransitionTimeRemaining / TransitionDuration);
+	RawAlpha = Clamp(RawAlpha, 0.0f, 1.0f);
+
+	// Apply easing function
+	float Alpha = ApplyEasing(RawAlpha, TransitionEaseType);
+
+	// Interpolate location
+	RelativeLocation = Lerp(TransitionStartLocation, TransitionTargetLocation, Alpha);
+
+	// Interpolate rotation using SLERP for smooth rotation
+	FQuaternion StartQuat = TransitionStartRotation.Quaternion();
+	FQuaternion TargetQuat = TransitionTargetRotation.Quaternion();
+	FQuaternion NewQuat = FQuaternion::Slerp(StartQuat, TargetQuat, Alpha);
+	FVector EulerAngles = NewQuat.ToEuler();
+	RelativeRotation = FRotator(EulerAngles.Y, EulerAngles.Z, EulerAngles.X);
+
+	// Check if transition is complete
+	if (TransitionTimeRemaining <= 0.0f)
+	{
+		bIsTransitioning = false;
+		TransitionTimeRemaining = 0.0f;
+		RelativeLocation = TransitionTargetLocation;
+		RelativeRotation = TransitionTargetRotation;
+	}
 }

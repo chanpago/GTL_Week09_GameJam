@@ -71,6 +71,9 @@ public:
 	void SetGameModeClass(UClass* InGameModeClass);
 	AGameMode* SpawnGameMode();
 
+	// Camera Management
+	class APlayerCameraManager* GetPlayerCameraManager() const;
+
 private:
 	EWorldType WorldType;
 	ULevel* Level = nullptr; // Persistance Level. Sublevels are not considered in Engine.

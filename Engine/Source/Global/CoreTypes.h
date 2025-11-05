@@ -34,6 +34,7 @@ struct FCameraConstants
 #define HAS_NORMAL_MAP	 (1 << 3)
 #define HAS_ALPHA_MAP	 (1 << 4)
 #define HAS_BUMP_MAP	 (1 << 5)
+#define HAS_SUBUV_ANIMATION (1 << 6)
 
 struct FMaterialConstants
 {
@@ -45,6 +46,9 @@ struct FMaterialConstants
 	float D;
 	uint32 MaterialFlags;
 	float Time; // Time in seconds
+	uint32 SubUVGridColumns; // SubUV grid columns (e.g., 4 for 4x4 grid)
+	uint32 SubUVGridRows; // SubUV grid rows (e.g., 4 for 4x4 grid)
+	float SubUVAnimationSpeed; // Animation speed in frames per second
 };
 
 struct FVertex

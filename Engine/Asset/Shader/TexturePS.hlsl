@@ -10,6 +10,9 @@ cbuffer MaterialConstants : register(b2)
     float D;		// Dissolve factor
     uint MaterialFlags;	// Which textures are available (bitfield)
     float Time;
+    uint SubUVGridColumns;
+    uint SubUVGridRows;
+    float SubUVAnimationSpeed;
 };
 
 Texture2D DiffuseTexture : register(t0);	// map_Kd
@@ -28,6 +31,7 @@ SamplerState SamplerWrap : register(s0);
 #define HAS_NORMAL_MAP	 (1 << 3)
 #define HAS_ALPHA_MAP	 (1 << 4)
 #define HAS_BUMP_MAP	 (1 << 5)
+#define HAS_SUBUV_ANIMATION (1 << 6)
 
 struct PS_OUTPUT
 {
@@ -38,9 +42,31 @@ struct PS_OUTPUT
 PS_OUTPUT mainPS(PS_INPUT Input) : SV_TARGET
 {
     PS_OUTPUT Output;
-    
+
     float4 FinalColor = float4(0.f, 0.f, 0.f, 1.f);
     float2 UV = Input.Tex;
+
+    // SubUV Animation
+    if (MaterialFlags & HAS_SUBUV_ANIMATION)
+    {
+        uint TotalFrames = SubUVGridColumns * SubUVGridRows;
+
+        // Calculate current frame index based on time and animation speed
+        float FrameTime = Time * SubUVAnimationSpeed;
+        uint CurrentFrame = min(uint(FrameTime), TotalFrames - 1); // 마지막 프레임에서 멈춤 (반복 안함)
+
+        // Calculate grid position (row and column)
+        uint Row = CurrentFrame / SubUVGridColumns;
+        uint Col = CurrentFrame % SubUVGridColumns;
+
+        // Calculate cell size
+        float CellWidth = 1.0f / float(SubUVGridColumns);
+        float CellHeight = 1.0f / float(SubUVGridRows);
+
+        // Apply UV offset and scale
+        UV.x = (UV.x * CellWidth) + (float(Col) * CellWidth);
+        UV.y = (UV.y * CellHeight) + (float(Row) * CellHeight);
+    }
 
     // Base diffuse color
     float4 DiffuseColor = Kd;
@@ -58,7 +84,7 @@ PS_OUTPUT mainPS(PS_INPUT Input) : SV_TARGET
     }
 
     FinalColor.rgb = DiffuseColor.rgb;
-    
+
     // Alpha handling
     if (MaterialFlags & HAS_ALPHA_MAP)
     {
@@ -66,7 +92,20 @@ PS_OUTPUT mainPS(PS_INPUT Input) : SV_TARGET
         FinalColor.a = D;
         FinalColor.a *= alpha;
     }
-    
+
+    // SubUV 애니메이션일 때 어두운 픽셀 제거 (검은 배경 제거)
+    if (MaterialFlags & HAS_SUBUV_ANIMATION)
+    {
+        // RGB 밝기 계산 (luminance)
+        float luminance = dot(FinalColor.rgb, float3(0.299f, 0.587f, 0.114f));
+
+        // 밝기가 일정 threshold 이하면 discard (어두운 배경 제거)
+        if (luminance < 0.1f)
+        {
+            discard;
+        }
+    }
+
     // Discard fully transparent pixels to prevent depth write
     if (FinalColor.a < 0.01f)
     {

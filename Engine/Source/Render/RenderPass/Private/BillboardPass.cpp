@@ -3,6 +3,7 @@
 #include "Editor/Public/Camera.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 #include "Texture/Public/Texture.h"
+#include "Manager/Time/Public/TimeManager.h"
 
 FBillboardPass::FBillboardPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferCamera, ID3D11Buffer* InConstantBufferModel,
                                ID3D11VertexShader* InVS, ID3D11PixelShader* InPS, ID3D11InputLayout* InLayout, ID3D11DepthStencilState* InDS, ID3D11BlendState* InBS)
@@ -25,6 +26,9 @@ void FBillboardPass::Execute(FRenderingContext& Context)
     Pipeline->UpdatePipeline(PipelineInfo);
 
     if (!(Context.ShowFlags & EEngineShowFlags::SF_Billboard)) { return; }
+
+    // Update global time for all billboards
+    BillboardMaterialConstants.Time = UTimeManager::GetInstance().GetGameTime();
 
     FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferMaterial, BillboardMaterialConstants);
     Pipeline->SetConstantBuffer(2, EShaderType::PS, ConstantBufferMaterial);
@@ -59,6 +63,31 @@ void FBillboardPass::Execute(FRenderingContext& Context)
         const FVector4 Tint = BillBoardComp->GetSpriteTint();
         BillboardMaterialConstants.Ka = Tint;
         BillboardMaterialConstants.Kd = Tint;
+
+        // Update SubUV animation parameters
+        if (BillBoardComp->IsSubUVAnimationEnabled())
+        {
+            BillboardMaterialConstants.MaterialFlags |= HAS_SUBUV_ANIMATION;
+            BillboardMaterialConstants.SubUVGridColumns = BillBoardComp->GetSubUVGridColumns();
+            BillboardMaterialConstants.SubUVGridRows = BillBoardComp->GetSubUVGridRows();
+            BillboardMaterialConstants.SubUVAnimationSpeed = BillBoardComp->GetSubUVAnimationSpeed();
+
+            // 상대 시간 모드: 각 빌보드가 독립적으로 애니메이션 재생
+            if (BillBoardComp->IsUsingRelativeTime())
+            {
+                float CurrentTime = UTimeManager::GetInstance().GetGameTime();
+                float SpawnTime = BillBoardComp->GetSpawnTime();
+                BillboardMaterialConstants.Time = CurrentTime - SpawnTime; // 상대 시간 계산
+            }
+        }
+        else
+        {
+            BillboardMaterialConstants.MaterialFlags &= ~HAS_SUBUV_ANIMATION;
+            BillboardMaterialConstants.SubUVGridColumns = 1;
+            BillboardMaterialConstants.SubUVGridRows = 1;
+            BillboardMaterialConstants.SubUVAnimationSpeed = 1.0f;
+        }
+
         //UE_LOG("%f %f %f %f", Tint.X,Tint.Y,Tint.Z,Tint.W);
         FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferMaterial, BillboardMaterialConstants);
         Pipeline->SetConstantBuffer(2, EShaderType::PS, ConstantBufferMaterial);

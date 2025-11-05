@@ -73,6 +73,7 @@ private:
 
     EPIEState PIEState = EPIEState::Stopped;
     bool bPIEMouseUnlocked = false;  // Shift + F1 상태
+    bool bUseEditorCameraInPIE = false;  // PIE 시작 시 에디터 카메라 사용 여부
     TArray<FWorldContext> WorldContexts;
     UEditor* EditorModule;
 };

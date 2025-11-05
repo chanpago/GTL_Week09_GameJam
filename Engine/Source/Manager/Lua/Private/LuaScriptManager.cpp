@@ -626,6 +626,27 @@ void FLuaScriptManager::BindTypes()
         "One", &FVector4::OneVector
     );
 
+    // Expose common types globally for convenience
+    (*LuaState)["FVector"] = EngineTypes["FVector"];
+    (*LuaState)["FVector4"] = EngineTypes["FVector4"];
+    (*LuaState)["FQuaternion"] = EngineTypes["FQuaternion"];
+
+    // --- FRotator Binding (as global) ---
+    LuaState->new_usertype<FRotator>("FRotator",
+        sol::call_constructor,
+        sol::constructors<FRotator(), FRotator(float, float, float)>(),
+        // Variables (Pitch, Yaw, Roll in degrees)
+        "Pitch", &FRotator::Pitch,
+        "Yaw", &FRotator::Yaw,
+        "Roll", &FRotator::Roll,
+        // Methods
+        "Quaternion", &FRotator::Quaternion,
+        "GetNormalized", &FRotator::GetNormalized,
+        "IsZero", &FRotator::IsZero,
+        // Static methods
+        "NormalizeAxis", &FRotator::NormalizeAxis
+    );
+
     // --- AActor Binding ---
     LuaState->new_usertype<AActor>("AActor",
         sol::no_constructor,
@@ -709,7 +730,9 @@ void FLuaScriptManager::BindTypes()
             return world->SpawnActor(ActorClass);
         },
         // Actor destruction (deferred via pending destroy)
-        "DestroyActor", &UWorld::DestroyActor
+        "DestroyActor", &UWorld::DestroyActor,
+        // Get PlayerCameraManager
+        "GetPlayerCameraManager", &UWorld::GetPlayerCameraManager
     );
 
     // --- UActorComponent Binding ---
@@ -951,13 +974,111 @@ void FLuaScriptManager::BindTypes()
         return &UTimeManager::GetInstance();
     });
 
+    // --- EKeyInput Enum Binding ---
+    LuaState->new_enum<EKeyInput>("EKeyInput",
+        {
+            // Movement keys
+            {"W", EKeyInput::W},
+            {"A", EKeyInput::A},
+            {"S", EKeyInput::S},
+            {"D", EKeyInput::D},
+            {"Q", EKeyInput::Q},
+            {"E", EKeyInput::E},
+            {"R", EKeyInput::R},
+            {"F", EKeyInput::F},
+            {"P", EKeyInput::P},
+            {"G", EKeyInput::G},
+            {"C", EKeyInput::C},
+            {"T", EKeyInput::T},
+            // Arrow keys
+            {"Up", EKeyInput::Up},
+            {"Down", EKeyInput::Down},
+            {"Left", EKeyInput::Left},
+            {"Right", EKeyInput::Right},
+            // Action keys
+            {"Space", EKeyInput::Space},
+            {"Enter", EKeyInput::Enter},
+            {"Esc", EKeyInput::Esc},
+            {"Tab", EKeyInput::Tab},
+            {"Shift", EKeyInput::Shift},
+            {"Ctrl", EKeyInput::Ctrl},
+            {"Alt", EKeyInput::Alt},
+            // Number keys
+            {"Num0", EKeyInput::Num0},
+            {"Num1", EKeyInput::Num1},
+            {"Num2", EKeyInput::Num2},
+            {"Num3", EKeyInput::Num3},
+            {"Num4", EKeyInput::Num4},
+            {"Num5", EKeyInput::Num5},
+            {"Num6", EKeyInput::Num6},
+            {"Num7", EKeyInput::Num7},
+            {"Num8", EKeyInput::Num8},
+            {"Num9", EKeyInput::Num9},
+            // Mouse
+            {"MouseLeft", EKeyInput::MouseLeft},
+            {"MouseRight", EKeyInput::MouseRight},
+            {"MouseMiddle", EKeyInput::MouseMiddle},
+            // Other
+            {"Backtick", EKeyInput::Backtick},
+            {"F1", EKeyInput::F1},
+            {"F2", EKeyInput::F2},
+            {"F3", EKeyInput::F3},
+            {"F4", EKeyInput::F4},
+            {"Backspace", EKeyInput::Backspace},
+            {"Delete", EKeyInput::Delete}
+        }
+    );
+
+    // --- ECameraEaseType Enum Binding ---
+    LuaState->new_enum<ECameraEaseType>("ECameraEaseType",
+        {
+            {"Linear", ECameraEaseType::Linear},
+            {"EaseIn", ECameraEaseType::EaseIn},
+            {"EaseOut", ECameraEaseType::EaseOut},
+            {"EaseInOut", ECameraEaseType::EaseInOut},
+            {"SmoothStep", ECameraEaseType::SmoothStep},
+            {"SmootherStep", ECameraEaseType::SmootherStep},
+            {"Bezier", ECameraEaseType::Bezier}
+        }
+    );
+
     // --- APlayerCameraManager Binding ---
     LuaState->new_usertype<APlayerCameraManager>("APlayerCameraManager",
         sol::no_constructor,
         sol::base_classes, sol::bases<AActor>(),
         "StartCameraShake", &APlayerCameraManager::StartCameraShake,
         "GetFadeAmount", &APlayerCameraManager::GetFadeAmount,
-        "GetLetterBoxAlpha", &APlayerCameraManager::GetLetterBoxAlpha
+        "GetLetterBoxAlpha", &APlayerCameraManager::GetLetterBoxAlpha,
+
+        // Camera Transition System
+        "StartTransitionToLocation", [](APlayerCameraManager* Mgr,
+                                        const FVector& TargetLoc,
+                                        const FRotator& TargetRot,
+                                        float Duration,
+                                        ECameraEaseType EaseType) {
+            if (Mgr) {
+                Mgr->StartTransitionToLocation(TargetLoc, TargetRot, Duration, EaseType, -1.0f);
+            }
+        },
+        "StartTransitionToActor", [](APlayerCameraManager* Mgr,
+                                     AActor* TargetActor,
+                                     float Duration,
+                                     ECameraEaseType EaseType,
+                                     const FVector& Offset) {
+            if (Mgr && TargetActor) {
+                Mgr->StartTransitionToActor(TargetActor, Duration, EaseType, Offset);
+            }
+        },
+        "StopCameraTransition", &APlayerCameraManager::StopCameraTransition,
+        "IsCameraTransitioning", &APlayerCameraManager::IsCameraTransitioning,
+        "GetTransitionProgress", &APlayerCameraManager::GetTransitionProgress,
+        "SetTransitionBezierControlPoints", [](APlayerCameraManager* Mgr,
+                                                float P1x, float P1y, float P2x, float P2y) {
+            if (Mgr) {
+                float CP[4] = { P1x, P1y, P2x, P2y };
+                Mgr->SetTransitionBezierControlPoints(CP);
+            }
+        }
     );
 
     // --- UGameHUDWidget Binding ---

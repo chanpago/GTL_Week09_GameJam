@@ -3,6 +3,7 @@
 #include "Actor/Public/Actor.h"
 
 class UCameraModifier;
+class UCameraModifier_CameraTransition;
 class UCamera;
 class UCameraComponent;
 class APawn;
@@ -22,6 +23,8 @@ enum class ECameraViewType : uint8
 /**
  * @brief View target struct for camera interpolation
  */
+#ifndef FVIEWTARGET_DEFINED
+#define FVIEWTARGET_DEFINED
 struct FViewTarget
 {
 	AActor* Target = nullptr;
@@ -29,6 +32,7 @@ struct FViewTarget
 	FRotator Rotation = FRotator(0.0f, 0.0f, 0.0f);
 	float FOV = 90.0f;
 };
+#endif
 
 /**
  * @brief APlayerCameraManager - Manages the player's camera
@@ -71,9 +75,14 @@ public:
 	AActor* GetViewTarget() const { return ViewTarget.Target; }
 
 	/**
-	 * @brief Get the managed camera
+	 * @brief Get the managed camera (Editor mode)
 	 */
 	UCamera* GetCamera() const { return Camera; }
+
+	/**
+	 * @brief Get the managed camera component (PIE/Game mode)
+	 */
+	UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
 	// ========== Fade System ==========
 
@@ -170,6 +179,68 @@ public:
 	 * @brief Get current camera view type
 	 */
 	ECameraViewType GetCurrentViewType() const { return CurrentViewType; }
+
+	// ========== Camera Transition System (Modifier-Based) ==========
+
+	/**
+	 * @brief Start a smooth transition to a specific location and rotation
+	 * @param TargetLocation Target camera location
+	 * @param TargetRotation Target camera rotation
+	 * @param Duration Transition duration in seconds
+	 * @param EaseType Easing function type
+	 * @param TargetFOV Target field of view (optional, -1 to keep current)
+	 * @param BezierCP Bezier control points [4] (only used if EaseType is Bezier)
+	 */
+	void StartTransitionToLocation(
+		const FVector& TargetLocation,
+		const FRotator& TargetRotation,
+		float Duration = 1.0f,
+		ECameraEaseType EaseType = ECameraEaseType::EaseInOut,
+		float TargetFOV = -1.0f,
+		const float* BezierCP = nullptr
+	);
+
+	/**
+	 * @brief Start a smooth transition to follow an actor
+	 * @param TargetActor Actor to follow
+	 * @param Duration Transition duration in seconds
+	 * @param EaseType Easing function type
+	 * @param Offset Offset from actor (optional)
+	 * @param BezierCP Bezier control points [4] (only used if EaseType is Bezier)
+	 */
+	void StartTransitionToActor(
+		AActor* TargetActor,
+		float Duration = 1.0f,
+		ECameraEaseType EaseType = ECameraEaseType::EaseInOut,
+		const FVector& Offset = FVector::Zero(),
+		const float* BezierCP = nullptr
+	);
+
+	/**
+	 * @brief Stop the current camera transition
+	 */
+	void StopCameraTransition();
+
+	/**
+	 * @brief Check if camera is currently transitioning
+	 */
+	bool IsCameraTransitioning() const;
+
+	/**
+	 * @brief Get the progress of current transition (0 to 1)
+	 */
+	float GetTransitionProgress() const;
+
+	/**
+	 * @brief Set custom Bezier control points for transitions
+	 * @param CP Control points [4]: P1.x, P1.y, P2.x, P2.y
+	 */
+	void SetTransitionBezierControlPoints(const float CP[4]);
+
+	/**
+	 * @brief Get current Bezier control points
+	 */
+	const float* GetTransitionBezierControlPoints() const;
 
 	// ========== Camera Modifier System ==========
 

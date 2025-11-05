@@ -432,3 +432,21 @@ AGameMode* UWorld::SpawnGameMode()
 
 	return NewGameMode;
 }
+
+APlayerCameraManager* UWorld::GetPlayerCameraManager() const
+{
+	// Get PlayerCameraManager through GameMode -> PlayerController
+	AGameMode* CurrentGameMode = GetGameMode();
+	if (!CurrentGameMode)
+	{
+		return nullptr;
+	}
+
+	APlayerController* PC = CurrentGameMode->GetPlayerController();
+	if (!PC)
+	{
+		return nullptr;
+	}
+
+	return PC->GetPlayerCameraManager();
+}

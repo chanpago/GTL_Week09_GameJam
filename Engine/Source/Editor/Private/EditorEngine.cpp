@@ -88,7 +88,7 @@ void UEditorEngine::Tick(float DeltaSeconds)
                 // PIE 상태가 Playing일 때만 틱을 실행
                 if (PIEState == EPIEState::Playing)
                 {
-                    World->Tick(DeltaSeconds);                    
+                    World->Tick(DeltaSeconds);
                     //FAudioEngine::GetInstance().Tick(DeltaSeconds, EditorModule->GetCamera());
                 }
             }
@@ -99,7 +99,7 @@ void UEditorEngine::Tick(float DeltaSeconds)
     {
         EditorModule->Update();
     }
-    
+
 }
 
 /**
@@ -151,7 +151,7 @@ void UEditorEngine::StartPIE()
         GWorld = PIEWorld;
         PIEWorld->BeginPlay();
 
-        FAudioEngine::GetInstance().PlayBGM("Data/Audio/Sample.wav");
+        FAudioEngine::GetInstance().PlayBGM("Data/Audio/TopGunSound.wav");
 
         // 게임 UI 매니저 초기화 (PlayerController 생성 이후)
         UGameUIManager::GetInstance().Initialize();
@@ -181,27 +181,55 @@ void UEditorEngine::StartPIE()
                     UCameraComponent* CameraComp = PlayerChar->GetCameraComponent();
                     if (CameraComp)
                     {
-                        // Initialize PlayerCameraManager with CameraComponent (PIE mode)
-                        CamMgr->Initialize(CameraComp);
-                        CamMgr->SetViewTarget(PlayerChar);
-                        UE_LOG("[EditorEngine] PlayerCameraManager initialized with CameraComponent");
-
-                        // Get camera offset from component
-                        FVector CameraOffset = CameraComp->GetRelativeLocation();
-
-                        // Set PIE viewport camera to follow player with camera offset
-                        int32 PIEViewportIdx = ViewportMgr.GetPIEActiveViewportIndex();
-                        if (PIEViewportIdx >= 0 && PIEViewportIdx < ViewportMgr.GetViewports().size())
+                        // Check if we should use editor camera or player camera
+                        if (bUseEditorCameraInPIE)
                         {
-                            FViewport* PIEViewport = ViewportMgr.GetViewports()[PIEViewportIdx];
-                            if (PIEViewport && PIEViewport->GetViewportClient())
+                            // Editor camera mode: Don't attach to player, keep editor camera control
+                            // But still connect PlayerCameraManager to editor camera for transition support
+                            int32 PIEViewportIdx = ViewportMgr.GetPIEActiveViewportIndex();
+                            if (PIEViewportIdx >= 0 && PIEViewportIdx < ViewportMgr.GetViewports().size())
                             {
-                                UCamera* Camera = PIEViewport->GetViewportClient()->GetCamera();
-                                if (Camera)
+                                FViewport* PIEViewport = ViewportMgr.GetViewports()[PIEViewportIdx];
+                                if (PIEViewport && PIEViewport->GetViewportClient())
                                 {
-                                    Camera->SetFollowTarget(PlayerChar, CameraOffset);
-                                    UE_LOG("[EditorEngine] PIE Camera set to follow PlayerCharacter with offset (%.1f, %.1f, %.1f)",
-                                        CameraOffset.X, CameraOffset.Y, CameraOffset.Z);
+                                    UCamera* Camera = PIEViewport->GetViewportClient()->GetCamera();
+                                    if (Camera)
+                                    {
+                                        // Clear any previous follow target so PlayerCameraManager has full control
+                                        Camera->ClearFollowTarget();
+
+                                        // Initialize PlayerCameraManager with editor camera
+                                        CamMgr->Initialize(Camera);
+                                        UE_LOG("[EditorEngine] Editor camera mode: PlayerCameraManager initialized with editor camera (follow target cleared)");
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Player camera mode: Original behavior
+                            // Initialize PlayerCameraManager with CameraComponent (PIE mode)
+                            CamMgr->Initialize(CameraComp);
+                            CamMgr->SetViewTarget(PlayerChar);
+                            UE_LOG("[EditorEngine] PlayerCameraManager initialized with CameraComponent");
+
+                            // Get camera offset from component
+                            FVector CameraOffset = CameraComp->GetRelativeLocation();
+
+                            // Set PIE viewport camera to follow player with camera offset
+                            int32 PIEViewportIdx = ViewportMgr.GetPIEActiveViewportIndex();
+                            if (PIEViewportIdx >= 0 && PIEViewportIdx < ViewportMgr.GetViewports().size())
+                            {
+                                FViewport* PIEViewport = ViewportMgr.GetViewports()[PIEViewportIdx];
+                                if (PIEViewport && PIEViewport->GetViewportClient())
+                                {
+                                    UCamera* Camera = PIEViewport->GetViewportClient()->GetCamera();
+                                    if (Camera)
+                                    {
+                                        Camera->SetFollowTarget(PlayerChar, CameraOffset);
+                                        UE_LOG("[EditorEngine] PIE Camera set to follow PlayerCharacter with offset (%.1f, %.1f, %.1f)",
+                                            CameraOffset.X, CameraOffset.Y, CameraOffset.Z);
+                                    }
                                 }
                             }
                         }

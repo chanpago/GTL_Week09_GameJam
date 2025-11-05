@@ -31,13 +31,13 @@ void UPlayerInput::HandleKeyboardInput(float DeltaTime)
     if (InputManager.IsKeyDown(EKeyInput::W))
     {
         // UE_LOG("Move W");
-        OnMoveForward.BroadCast(1.0f * DeltaTime);
+        OnMoveForward.BroadCast(1.0f);  // DeltaTime 제거 (Tick에서 처리)
     }
 
     if (InputManager.IsKeyDown(EKeyInput::S))
     {
         // UE_LOG("Move S");
-        OnMoveForward.BroadCast(-1.0f * DeltaTime);
+        OnMoveForward.BroadCast(-1.0f);  // DeltaTime 제거
     }
 
     if (InputManager.IsKeyDown(EKeyInput::D))

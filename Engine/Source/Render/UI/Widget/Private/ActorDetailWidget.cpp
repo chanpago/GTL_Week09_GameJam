@@ -14,6 +14,7 @@
 #include "Manager/Camera/Public/PlayerCameraManager.h"
 #include "Manager/Camera/Public/CameraModifier.h"
 #include "Manager/Camera/Public/CameraModifier_CameraShake.h"
+#include "Manager/Camera/Public/CameraModifier_CameraTransition.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -2000,6 +2001,86 @@ void UActorDetailWidget::RenderCameraModifiers(APlayerCameraManager* CameraManag
 				else
 				{
 					ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Using linear decay");
+				}
+			}
+
+			// Special handling for UCameraModifier_CameraTransition
+			if (UCameraModifier_CameraTransition* TransitionMod = Cast<UCameraModifier_CameraTransition>(Modifier))
+			{
+				ImGui::Separator();
+				ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.8f, 1.0f), "Camera Transition Settings:");
+
+				ImGui::Spacing();
+				ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Transition easing curve:");
+
+				// Get current bezier control points
+				const float* CurrentCP = TransitionMod->GetBezierControlPoints();
+				float BezierCP[4];
+				BezierCP[0] = CurrentCP[0];
+				BezierCP[1] = CurrentCP[1];
+				BezierCP[2] = CurrentCP[2];
+				BezierCP[3] = CurrentCP[3];
+
+				// Draw Bezier widget
+				if (Bezier("Transition Easing Curve", BezierCP))
+				{
+					// Apply changes to modifier
+					TransitionMod->SetBezierControlPoints(BezierCP);
+				}
+
+				ImGui::Spacing();
+
+				// Preset buttons
+				ImGui::Text("Presets:");
+
+				struct BezierPreset
+				{
+					const char* Name;
+					float CP[4];
+				};
+
+				static const BezierPreset Presets[] = {
+					{ "EaseOutQuad", {0.25f, 0.46f, 0.45f, 0.94f} },
+					{ "EaseInQuad", {0.55f, 0.085f, 0.68f, 0.53f} },
+					{ "EaseInOutQuad", {0.455f, 0.03f, 0.515f, 0.955f} },
+					{ "EaseOutCubic", {0.215f, 0.61f, 0.355f, 1.0f} },
+					{ "EaseInCubic", {0.55f, 0.055f, 0.675f, 0.19f} },
+					{ "EaseInOutCubic", {0.645f, 0.045f, 0.355f, 1.0f} },
+					{ "Elastic", {0.68f, -0.55f, 0.265f, 1.55f} }
+				};
+
+				for (int i = 0; i < 7; ++i)
+				{
+					if (i > 0 && i % 2 == 1) ImGui::SameLine();
+
+					if (ImGui::Button(Presets[i].Name, ImVec2(95, 0)))
+					{
+						TransitionMod->SetBezierControlPoints(Presets[i].CP);
+					}
+				}
+
+				ImGui::Spacing();
+				ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+					"Tip: Drag control points or use sliders");
+				ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+					"Current: P1(%.3f, %.3f) P2(%.3f, %.3f)",
+					CurrentCP[0], CurrentCP[1], CurrentCP[2], CurrentCP[3]);
+				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+					"(Changes will apply to next transition)");
+
+				// Show transition status
+				if (TransitionMod->IsCameraTransitioning())
+				{
+					ImGui::Spacing();
+					float progress = TransitionMod->GetTransitionProgress();
+					ImGui::Text("Status: Transitioning...");
+					ImGui::ProgressBar(progress, ImVec2(-1, 0), "");
+					ImGui::Text("Progress: %.1f%%", progress * 100.0f);
+				}
+				else
+				{
+					ImGui::Spacing();
+					ImGui::TextDisabled("Status: Not transitioning");
 				}
 			}
 

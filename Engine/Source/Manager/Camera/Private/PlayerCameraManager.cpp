@@ -2,12 +2,15 @@
 #include "Manager/Camera/Public/PlayerCameraManager.h"
 #include "Manager/Camera/Public/CameraModifier.h"
 #include "Manager/Camera/Public/CameraModifier_CameraShake.h"
+#include "Manager/Camera/Public/CameraModifier_CameraTransition.h"
 #include "Editor/Public/Camera.h"
 #include "Component/Camera/Public/CameraComponent.h"
 #include "Pawn/Public/Pawn.h"
 #include "Level/Public/World.h"
 #include "Level/Public/Level.h"
 #include "Component/Collision/Public/ShapeComponent.h"
+#include "Player/Public/EnemyCharacter.h"
+#include "Global/Quaternion.h"
 
 IMPLEMENT_CLASS(APlayerCameraManager, AActor)
 
@@ -85,6 +88,7 @@ void APlayerCameraManager::BeginPlay()
 	// Add default modifiers if none exist
 	if (ModifierList.empty())
 	{
+		// Camera Shake Modifier
 		UCameraModifier_CameraShake* ShakeMod = new UCameraModifier_CameraShake();
 
 		// Apply default Bezier settings from this manager
@@ -95,6 +99,10 @@ void APlayerCameraManager::BeginPlay()
 		ShakeMod->bUseBezierDecay = bDefaultUseBezierDecay;
 
 		AddCameraModifier(ShakeMod);
+
+		// Camera Transition Modifier (미리 생성해서 UI에서 베지어 곡선 표시 가능)
+		UCameraModifier_CameraTransition* TransitionMod = new UCameraModifier_CameraTransition();
+		AddCameraModifier(TransitionMod);
 	}
 }
 
@@ -280,6 +288,12 @@ void APlayerCameraManager::SetSpringArmParams(FVector Offset, float ArmLength, f
 
 void APlayerCameraManager::UpdateSpringArm(float DeltaTime)
 {
+	// Skip SpringArm updates if camera transition is active (transition controls camera)
+	if (IsCameraTransitioning())
+	{
+		return;
+	}
+
 	if (!bSpringArmEnabled || (!Camera && !CameraComponent) || !ViewTarget.Target)
 	{
 		return;
@@ -356,6 +370,12 @@ void APlayerCameraManager::UpdateSpringArm(float DeltaTime)
 				// Skip if this is the target's own collision component
 				AActor* CompOwner = ShapeComp->GetOwner();
 				if (CompOwner == ViewTarget.Target)
+				{
+					continue;
+				}
+
+				// Skip enemy collision components
+				if (Cast<AEnemyCharacter>(CompOwner))
 				{
 					continue;
 				}
@@ -668,4 +688,98 @@ void APlayerCameraManager::StartCameraShake(float Intensity, float Duration)
 	{
 		ShakeMod->StartShake(Intensity, Duration);
 	}
+}
+
+// ========== Camera Transition System ==========
+
+void APlayerCameraManager::StartTransitionToLocation(
+	const FVector& TargetLocation,
+	const FRotator& TargetRotation,
+	float Duration,
+	ECameraEaseType EaseType,
+	float TargetFOV,
+	const float* BezierCP)
+{
+	// Get or create transition modifier
+	UCameraModifier_CameraTransition* TransitionModifier = FindModifier<UCameraModifier_CameraTransition>();
+	if (!TransitionModifier)
+	{
+		TransitionModifier = NewObject<UCameraModifier_CameraTransition>();
+		TransitionModifier->Initialize(this);
+		AddCameraModifier(TransitionModifier);
+	}
+
+	// Start transition through modifier
+	TransitionModifier->StartTransitionToLocation(TargetLocation, TargetRotation, Duration, EaseType, TargetFOV, BezierCP);
+}
+
+void APlayerCameraManager::StartTransitionToActor(
+	AActor* TargetActor,
+	float Duration,
+	ECameraEaseType EaseType,
+	const FVector& Offset,
+	const float* BezierCP)
+{
+	// Get or create transition modifier
+	UCameraModifier_CameraTransition* TransitionModifier = FindModifier<UCameraModifier_CameraTransition>();
+	if (!TransitionModifier)
+	{
+		TransitionModifier = NewObject<UCameraModifier_CameraTransition>();
+		TransitionModifier->Initialize(this);
+		AddCameraModifier(TransitionModifier);
+	}
+
+	// Start transition through modifier
+	TransitionModifier->StartTransitionToActor(TargetActor, Duration, EaseType, Offset, BezierCP);
+}
+
+void APlayerCameraManager::StopCameraTransition()
+{
+	UCameraModifier_CameraTransition* TransitionModifier = FindModifier<UCameraModifier_CameraTransition>();
+	if (TransitionModifier)
+	{
+		TransitionModifier->StopTransition();
+	}
+}
+
+bool APlayerCameraManager::IsCameraTransitioning() const
+{
+	UCameraModifier_CameraTransition* TransitionModifier = const_cast<APlayerCameraManager*>(this)->FindModifier<UCameraModifier_CameraTransition>();
+	if (TransitionModifier)
+	{
+		return TransitionModifier->IsCameraTransitioning();
+	}
+	return false;
+}
+
+float APlayerCameraManager::GetTransitionProgress() const
+{
+	UCameraModifier_CameraTransition* TransitionModifier = const_cast<APlayerCameraManager*>(this)->FindModifier<UCameraModifier_CameraTransition>();
+	if (TransitionModifier)
+	{
+		return TransitionModifier->GetTransitionProgress();
+	}
+	return 0.0f;
+}
+
+void APlayerCameraManager::SetTransitionBezierControlPoints(const float CP[4])
+{
+	UCameraModifier_CameraTransition* TransitionModifier = FindModifier<UCameraModifier_CameraTransition>();
+	if (TransitionModifier)
+	{
+		TransitionModifier->SetBezierControlPoints(CP);
+	}
+}
+
+const float* APlayerCameraManager::GetTransitionBezierControlPoints() const
+{
+	UCameraModifier_CameraTransition* TransitionModifier = const_cast<APlayerCameraManager*>(this)->FindModifier<UCameraModifier_CameraTransition>();
+	if (TransitionModifier)
+	{
+		return TransitionModifier->GetBezierControlPoints();
+	}
+
+	// Return default if no modifier exists yet
+	static const float DefaultBezierCP[4] = { 0.250f, 0.460f, 0.450f, 0.940f };
+	return DefaultBezierCP;
 }

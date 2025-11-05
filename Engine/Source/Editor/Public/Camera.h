@@ -96,6 +96,31 @@ public:
 	void ClearFollowTarget();
 	bool HasFollowTarget() const;
 
+	// Camera Smooth Transition
+	/**
+	 * @brief Start smooth transition to target location and rotation
+	 * @param TargetLocation Target camera position
+	 * @param TargetRotation Target camera rotation
+	 * @param Duration Transition duration in seconds
+	 * @param EaseType Easing function type
+	 */
+	void SmoothMoveTo(
+		const FVector& TargetLocation,
+		const FRotator& TargetRotation,
+		float Duration = 1.0f,
+		ECameraEaseType EaseType = ECameraEaseType::EaseInOut
+	);
+
+	/**
+	 * @brief Stop current smooth transition
+	 */
+	void StopSmoothMove();
+
+	/**
+	 * @brief Check if camera is currently transitioning
+	 */
+	bool IsTransitioning() const { return bIsTransitioning; }
+
 	/* *
 	 * @brief 행렬 형태로 저장된 좌표와 변환 행렬과의 연산한 결과를 반환합니다.
 	 */
@@ -138,4 +163,20 @@ private:
 	// PIE Mode: Follow Target (불법증축!)
 	TWeakObjectPtr<AActor> FollowTarget;
 	FVector FollowOffset = FVector::Zero();
+
+	// Smooth Transition State
+	bool bIsTransitioning = false;
+	float TransitionDuration = 1.0f;
+	float TransitionTimeRemaining = 0.0f;
+	ECameraEaseType TransitionEaseType = ECameraEaseType::EaseInOut;
+	FVector TransitionStartLocation = FVector::Zero();
+	FRotator TransitionStartRotation = FRotator(0, 0, 0);
+	FVector TransitionTargetLocation = FVector::Zero();
+	FRotator TransitionTargetRotation = FRotator(0, 0, 0);
+
+	/**
+	 * @brief Update smooth transition (called in Update)
+	 * @param DeltaTime Time since last frame
+	 */
+	void UpdateTransition(float DeltaTime);
 };

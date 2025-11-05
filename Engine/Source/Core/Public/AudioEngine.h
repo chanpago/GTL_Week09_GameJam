@@ -39,6 +39,9 @@ public:
     void PlayBGM(const path& FilePath);
     void StopBGM();
 
+    // 효과음 재생 (one-shot, 중첩 가능)
+    void PlaySFX(const path& FilePath, float Volume = 1.0f);
+
     // 사운드컴포넌트 재생
     void PlaySoundComponent();
     void StopSoundComponent();
@@ -61,6 +64,9 @@ private:
 
     IXAudio2SourceVoice* BGMSourceVoice = nullptr;
     FSoundData* CurrentBGM = nullptr;
+
+    // 효과음용 SourceVoice 리스트 (재생 완료 후 정리)
+    TArray<IXAudio2SourceVoice*> SFXVoices;
 
     TArray<UAudioComponent*> ActiveComponents;
     X3DAUDIO_HANDLE X3DAudioHandle;

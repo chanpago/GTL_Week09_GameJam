@@ -65,6 +65,17 @@ void FAudioEngine::Initialize()
 void FAudioEngine::Shutdown()
 {
     StopBGM();
+
+    // 모든 SFX Voice 정리
+    for (IXAudio2SourceVoice* Voice : SFXVoices)
+    {
+        if (Voice)
+        {
+            Voice->DestroyVoice();
+        }
+    }
+    SFXVoices.clear();
+
     ActiveComponents.clear();
     SoundMap.clear();
 
@@ -106,7 +117,21 @@ void FAudioEngine::Tick(float DeltaTime, UCamera* Camera)
     Listener.OrientFront = {ListenerForward.X, ListenerForward.Y, ListenerForward.Z};
     Listener.OrientTop = {ListenerUp.X, ListenerUp.Y, ListenerUp.Z};
 
-    // TODO ActiveComponent 순회하며 재생하는 로직 추가    
+    // 재생 완료된 SFX Voice 정리
+    for (int i = SFXVoices.size() - 1; i >= 0; --i)
+    {
+        XAUDIO2_VOICE_STATE state;
+        SFXVoices[i]->GetState(&state);
+
+        // BuffersQueued가 0이면 재생 완료
+        if (state.BuffersQueued == 0)
+        {
+            SFXVoices[i]->DestroyVoice();
+            SFXVoices.erase(SFXVoices.begin() + i);
+        }
+    }
+
+    // TODO ActiveComponent 순회하며 재생하는 로직 추가
 }
 
 void FAudioEngine::PlayBGM(const path& FilePath)
@@ -164,6 +189,50 @@ void FAudioEngine::StopBGM()
         BGMSourceVoice = nullptr;
         CurrentBGM = nullptr;
     }
+}
+
+void FAudioEngine::PlaySFX(const path& FilePath, float Volume)
+{
+    FSoundData* SFXData = GetSoundData(FilePath);
+    if (!SFXData)
+    {
+        UE_LOG_ERROR("[FAudioEngine] SFX not found: %s", FilePath.string().c_str());
+        return;
+    }
+
+    IXAudio2SourceVoice* SFXVoice = nullptr;
+    HRESULT hr = Audio->CreateSourceVoice(&SFXVoice, &SFXData->WaveFormat);
+    if (FAILED(hr))
+    {
+        UE_LOG_ERROR("[FAudioEngine] SFX voice create fail");
+        return;
+    }
+
+    // 볼륨 설정
+    SFXVoice->SetVolume(Volume);
+
+    // 버퍼 제출 (loop 없음)
+    XAUDIO2_BUFFER buffer = {};
+    SFXData->FillXAudio2Buffer(buffer);
+    buffer.LoopCount = 0; // 반복 없음
+
+    hr = SFXVoice->SubmitSourceBuffer(&buffer);
+    if (FAILED(hr))
+    {
+        SFXVoice->DestroyVoice();
+        return;
+    }
+
+    // 재생 시작
+    hr = SFXVoice->Start(0);
+    if (FAILED(hr))
+    {
+        SFXVoice->DestroyVoice();
+        return;
+    }
+
+    // 리스트에 추가 (나중에 정리)
+    SFXVoices.push_back(SFXVoice);
 }
 
 void FAudioEngine::PlaySoundComponent()

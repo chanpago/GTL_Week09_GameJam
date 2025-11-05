@@ -1039,7 +1039,7 @@ void URenderer::Update()
         LetterboxPass->SetInputTexture(DeviceResources->GetSceneColorShaderResourceView());
         LetterboxPass->SetOutputRenderTarget(nullptr); // 백버퍼
 
-        UE_LOG("PostProcessing: 복사 패스 실행 (PassCount = 0, AspectRatio = %.3f)", CurrentAspect);
+        //UE_LOG("PostProcessing: 복사 패스 실행 (PassCount = 0, AspectRatio = %.3f)", CurrentAspect);
 
         LetterboxPass->Execute(RenderingContext);
     }
@@ -1264,18 +1264,24 @@ void URenderer::RenderLevel(FViewport* InViewport, int32 ViewportIndex)
 		if (auto PointLightComponent = Cast<UPointLightComponent>(LightComponent))
 		{
 			auto SpotLightComponent = Cast<USpotLightComponent>(LightComponent);
-			
+
 			if (SpotLightComponent &&
 				SpotLightComponent->GetVisible() &&
 				SpotLightComponent->GetLightEnabled())
 			{
 				RenderingContext.SpotLights.push_back(SpotLightComponent);
 			}
-			else if (PointLightComponent &&
-				PointLightComponent->GetVisible() &&
-				PointLightComponent->GetLightEnabled())
+			else if (PointLightComponent)
 			{
-				RenderingContext.PointLights.push_back(PointLightComponent);
+				FVector WorldPos = PointLightComponent->GetWorldLocation();
+				
+
+				if (PointLightComponent->GetVisible() &&
+					PointLightComponent->GetLightEnabled())
+				{
+					RenderingContext.PointLights.push_back(PointLightComponent);
+					UE_LOG("[Renderer] PointLight ADDED to RenderingContext!");
+				}
 			}
 		}
 

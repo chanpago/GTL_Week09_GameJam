@@ -1,5 +1,19 @@
 -- PlayerCharacter.lua: 플레이어 캐릭터 + 무기 시스템 통합
 -- PlayerCharacter에 붙여서 사용
+--
+-- [카메라 트랜지션 테스트 키]
+-- Q키: 플레이어 앞쪽 상단에서 내려다보는 테스트 카메라로 전환
+-- R키: 원래 카메라 위치로 복귀
+--
+-- [카메라 트랜지션 사용 예제]
+-- 1. 특정 위치로 카메라 전환:
+--    self:TransitionCameraToLocation(targetPos, targetRot, 2.0, 3)
+--
+-- 2. 특정 액터 따라가기:
+--    self:TransitionCameraToActor(targetActor, 2.0, FVector(-300, 0, 100), 3)
+--
+-- 3. 카메라 쉐이크:
+--    (기존과 동일) OnHit에서 사용 중
 
 setmetatable(_ENV, { __index = EngineTypes })
 
@@ -16,6 +30,9 @@ return function()
     -- 데미지 쿨타임 시스템
     local lastDamageTime = 0    -- 마지막 데미지 받은 시간
     local damageCooldown = 1.0  -- 1초 쿨타임
+
+    -- 카메라 트랜지션 테스트용 변수
+    local isQKeyPressed = false
 
     -- ==================================================
     -- 무기 설정
@@ -123,6 +140,32 @@ return function()
             return
         end
 
+        local InputMgr = GetInputManager()
+        if not InputMgr then
+            return
+        end
+
+        -- ==========================================
+        -- 카메라 트랜지션 테스트 (무기 활성화와 무관)
+        -- ==========================================
+        -- Q키: 특정 위치로 카메라 이동 (디버그용)
+        if InputMgr:IsKeyDown("Q") and not isQKeyPressed then
+            isQKeyPressed = true
+            self:TestCameraTransitionToFixedPosition()
+            Print("[CameraTest] Q - Moving to fixed test position!")
+        elseif not InputMgr:IsKeyDown("Q") and isQKeyPressed then
+            isQKeyPressed = false
+        end
+
+        -- R키: 원래 카메라로 복귀
+        if InputMgr:IsKeyDown("R") then
+            self:TestCameraTransitionReturn()
+            Print("[CameraTest] R - Returning to follow camera!")
+        end
+
+        -- ==========================================
+        -- 무기 시스템 (WeaponEnabled일 때만)
+        -- ==========================================
         -- 무기가 비활성화되어 있으면 발사 불가
         if not self.WeaponEnabled then
             return
@@ -134,8 +177,7 @@ return function()
         end
 
         -- 마우스 왼쪽 버튼 입력 체크 (꾹 누르면 계속 발사)
-        local InputMgr = GetInputManager()
-        if InputMgr and InputMgr:IsKeyDown("MouseLeft") and self.CurrentCooldown <= 0.0 then
+        if InputMgr:IsKeyDown("MouseLeft") and self.CurrentCooldown <= 0.0 then
             self:FireMissile()
             self.CurrentCooldown = self.FireCooldown
         end
@@ -180,6 +222,131 @@ return function()
     end
 
     -- ==================================================
+    -- 카메라 트랜지션 헬퍼 함수
+    -- ==================================================
+    -- 특정 위치로 카메라 부드럽게 전환
+    function ReturnTable:TransitionCameraToLocation(targetPos, targetRot, duration, easeType)
+        local gameMode = GetGameMode()
+        if gameMode then
+            local playerController = gameMode:GetPlayerController()
+            if playerController then
+                local camMgr = playerController:GetPlayerCameraManager()
+                if camMgr then
+                    -- easeType: 0=Linear, 1=EaseIn, 2=EaseOut, 3=EaseInOut, 4=Bezier
+                    local actualEaseType = easeType or 3  -- 기본값: EaseInOut
+                    local actualDuration = duration or 2.0
+                    local targetFOV = -1  -- -1 = 현재 FOV 유지
+
+                    camMgr:StartTransitionToLocation(
+                        targetPos,
+                        targetRot,
+                        actualDuration,
+                        actualEaseType,
+                        targetFOV
+                    )
+                end
+            end
+        end
+    end
+
+    -- 특정 액터를 따라가도록 카메라 전환
+    function ReturnTable:TransitionCameraToActor(targetActor, duration, offset, easeType)
+        local gameMode = GetGameMode()
+        if gameMode then
+            local playerController = gameMode:GetPlayerController()
+            if playerController then
+                local camMgr = playerController:GetPlayerCameraManager()
+                if camMgr then
+                    local actualEaseType = easeType or 3  -- 기본값: EaseInOut
+                    local actualDuration = duration or 2.0
+                    local actualOffset = offset or FVector(-300.0, 0.0, 100.0)
+
+                    camMgr:StartTransitionToActor(
+                        targetActor,
+                        actualDuration,
+                        actualEaseType,
+                        actualOffset
+                    )
+                end
+            end
+        end
+    end
+
+    -- ==================================================
+    -- 카메라 트랜지션 테스트 함수 (Q키, R키)
+    -- ==================================================
+    -- Q키: 플레이어 기준 상대 위치로 카메라 이동 (디버그용)
+    function ReturnTable:TestCameraTransitionToFixedPosition()
+        if not PlayerActor then
+            return
+        end
+
+        local gameMode = GetGameMode()
+        if not gameMode then
+            return
+        end
+
+        local playerController = gameMode:GetPlayerController()
+        if not playerController then
+            return
+        end
+
+        local camMgr = playerController:GetPlayerCameraManager()
+        if not camMgr then
+            return
+        end
+
+        -- 플레이어 위치와 회전
+        local playerPos = PlayerActor.ActorLocation
+        local playerRot = PlayerActor.ActorRotation
+
+        -- 플레이어 기준 상대 오프셋 (-500, 0, 500)
+        local localOffset = FVector(-500.0, 0.0, 500.0)
+        local worldOffset = playerRot:RotateVector(localOffset)
+        local targetPos = playerPos + worldOffset
+
+        -- 플레이어를 바라보는 회전 계산
+        local lookDir = (playerPos - targetPos):GetNormalized()
+        local yaw = math.atan(lookDir.Y, lookDir.X) * (180.0 / 3.14159265359)
+        local pitch = math.asin(-lookDir.Z) * (180.0 / 3.14159265359)
+        local targetRot = FRotator(pitch, yaw, 0.0)
+
+        -- 2초 동안 EaseInOut으로 이동
+        camMgr:StartTransitionToLocation(
+            targetPos,
+            targetRot,
+            2.0,  -- 2초 duration
+            3,    -- EaseInOut
+            -1    -- FOV 유지
+        )
+    end
+
+    -- R키 또는 Q키 뗐을 때: 원래 플레이어를 따라가는 카메라로 복귀
+    function ReturnTable:TestCameraTransitionReturn()
+        if not PlayerActor then
+            return
+        end
+
+        local gameMode = GetGameMode()
+        if not gameMode then
+            return
+        end
+
+        local playerController = gameMode:GetPlayerController()
+        if not playerController then
+            return
+        end
+
+        local camMgr = playerController:GetPlayerCameraManager()
+        if not camMgr then
+            return
+        end
+
+        -- 트랜지션 중지 - 원래 ViewTarget(PlayerActor)를 따라가도록 복귀
+        camMgr:StopCameraTransition()
+    end
+
+    -- ==================================================
     -- Collision Events
     -- ==================================================
     function ReturnTable:OnBeginOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult)
@@ -212,7 +379,7 @@ return function()
                     if playerController then
                         local camMgr = playerController:GetPlayerCameraManager()
                         if camMgr then
-                            camMgr:StartCameraShake(100.0, 10.0)
+                            camMgr:StartCameraShake(5.0, 1.0)
                         end
                     end
                 end
